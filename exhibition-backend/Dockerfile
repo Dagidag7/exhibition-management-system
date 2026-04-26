@@ -6,5 +6,6 @@ RUN mvn clean package -DskipTests
 FROM eclipse-temurin:21-jre
 WORKDIR /app
 COPY --from=build /app/target/exhibition-backend-1.0-SNAPSHOT-jar-with-dependencies.jar app.jar
+COPY --from=build /app/images ./images
 EXPOSE 8888
 CMD ["java","-jar","app.jar"]
