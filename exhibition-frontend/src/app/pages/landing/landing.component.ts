@@ -8,6 +8,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { Router } from '@angular/router';
 import { SponsorService } from '../../services/sponsor.service';
+import { environment } from '../../../environments/environment';
 import { ExhibitorService } from '../../services/exhibitor.service';
 import { ProductService } from '../../services/product.service';
 import { ConferenceService } from '../../services/conference.service';
@@ -96,9 +97,9 @@ export class LandingComponent implements OnInit {
             // Ensure logoUrl is properly formatted - if it's a relative path, make it absolute
             logoUrl = logoUrl.trim();
             if (logoUrl && !logoUrl.startsWith('http') && !logoUrl.startsWith('/')) {
-              logoUrl = 'http://localhost:8888/' + logoUrl;
+              logoUrl = `${environment.apiUrl}/` + logoUrl;
             } else if (logoUrl && logoUrl.startsWith('/') && !logoUrl.startsWith('http')) {
-              logoUrl = 'http://localhost:8888' + logoUrl;
+              logoUrl = `${environment.apiUrl}` + logoUrl;
             }
           }
           return {
@@ -166,9 +167,9 @@ export class LandingComponent implements OnInit {
                 // Ensure imageUrl is properly formatted - if it's a relative path, make it absolute
                 imageUrl = imageUrl.trim();
                 if (imageUrl && !imageUrl.startsWith('http') && !imageUrl.startsWith('/')) {
-                  imageUrl = 'http://localhost:8888/' + imageUrl;
+                  imageUrl = `${environment.apiUrl}/` + imageUrl;
                 } else if (imageUrl && imageUrl.startsWith('/') && !imageUrl.startsWith('http')) {
-                  imageUrl = 'http://localhost:8888' + imageUrl;
+                  imageUrl = `${environment.apiUrl}` + imageUrl;
                 }
               }
               return {
@@ -190,9 +191,9 @@ export class LandingComponent implements OnInit {
               } else {
                 imageUrl = imageUrl.trim();
                 if (imageUrl && !imageUrl.startsWith('http') && !imageUrl.startsWith('/')) {
-                  imageUrl = 'http://localhost:8888/' + imageUrl;
+                  imageUrl = `${environment.apiUrl}/` + imageUrl;
                 } else if (imageUrl && imageUrl.startsWith('/') && !imageUrl.startsWith('http')) {
-                  imageUrl = 'http://localhost:8888' + imageUrl;
+                  imageUrl = `${environment.apiUrl}` + imageUrl;
                 }
               }
               return {

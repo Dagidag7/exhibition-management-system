@@ -5,6 +5,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { FileUploadService } from '../../services/file-upload.service';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-image-upload',
@@ -145,10 +146,10 @@ export class ImageUploadComponent implements OnInit {
     }
     // If URL is relative (starts with /), prepend backend URL
     if (url.startsWith('/')) {
-      return `http://localhost:8888${url}`;
+      return `${environment.apiUrl}${url}`;
     }
     // Otherwise, assume it's a relative path from backend
-    return `http://localhost:8888/${url}`;
+    return `${environment.apiUrl}/${url}`;
   }
 
   getDisplayImage(): string | null {

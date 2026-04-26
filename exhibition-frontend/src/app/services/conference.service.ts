@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export interface Conference {
   conferenceId: number;
@@ -19,7 +20,7 @@ export interface Conference {
   providedIn: 'root'
 })
 export class ConferenceService {
-  private apiUrl = 'http://localhost:8888/conferences';
+  private apiUrl = `${environment.apiUrl}/conferences`;
 
   constructor(private http: HttpClient) {}
 

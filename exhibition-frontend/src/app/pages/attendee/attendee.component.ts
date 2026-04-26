@@ -8,6 +8,7 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatListModule } from '@angular/material/list';
 import { MatGridListModule } from '@angular/material/grid-list';
+import { environment } from '../../../environments/environment';
 import { RouterModule, Router } from '@angular/router';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
@@ -142,9 +143,9 @@ export class AttendeeComponent implements OnInit {
             // Ensure logoUrl is properly formatted - if it's a relative path, make it absolute
             const logoUrl = e.logoUrl.trim();
             if (logoUrl && !logoUrl.startsWith('http') && !logoUrl.startsWith('/')) {
-              e.logoUrl = 'http://localhost:8888/' + logoUrl;
+              e.logoUrl = `${environment.apiUrl}/` + logoUrl;
             } else if (logoUrl && logoUrl.startsWith('/') && !logoUrl.startsWith('http')) {
-              e.logoUrl = 'http://localhost:8888' + logoUrl;
+              e.logoUrl = `${environment.apiUrl}` + logoUrl;
             }
           }
           return e;
@@ -262,9 +263,9 @@ export class AttendeeComponent implements OnInit {
             // Ensure logoUrl is properly formatted - if it's a relative path, make it absolute
             const logoUrl = s.logoUrl.trim();
             if (logoUrl && !logoUrl.startsWith('http') && !logoUrl.startsWith('/')) {
-              s.logoUrl = 'http://localhost:8888/' + logoUrl;
+              s.logoUrl = `${environment.apiUrl}/` + logoUrl;
             } else if (logoUrl && logoUrl.startsWith('/') && !logoUrl.startsWith('http')) {
-              s.logoUrl = 'http://localhost:8888' + logoUrl;
+              s.logoUrl = `${environment.apiUrl}` + logoUrl;
             }
           }
           return s;
