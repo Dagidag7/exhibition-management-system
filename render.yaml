@@ -50,7 +50,7 @@ services:
   - type: static
     name: exhibition-frontend
     rootDir: exhibition-frontend
-    buildCommand: npm install && npm run build -- --configuration production
+    buildCommand: npm install --legacy-peer-deps && npm run build -- --configuration production
     staticPublishPath: dist/exhibition-frontend/browser
 
     routes:
