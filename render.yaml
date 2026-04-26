@@ -1,40 +1,13 @@
 services:
   - type: web
     name: exhibition-backend
-    runtime: java
+    runtime: docker
     rootDir: exhibition-backend
-    buildCommand: mvn clean package -DskipTests
-    startCommand: java -jar target/exhibition-backend-1.0-SNAPSHOT-jar-with-dependencies.jar
 
     envVars:
       - key: SERVER_PORT
         value: "8888"
 
-      - key: DB_DRIVER
-        value: org.postgresql.Driver
-
-      - key: EMAIL_PROVIDER
-        value: smtp
-
-      - key: SMTP_HOST
-        value: smtp-relay.brevo.com
-
-      - key: SMTP_PORT
-        value: "587"
-
-      - key: SMTP_USER
-        value: a923b0001@smtp-brevo.com
-
-      - key: SMTP_FROM
-        value: dagimawitkelem129@gmail.com
-
-      - key: SMTP_USE_TLS
-        value: "true"
-
-      - key: ADMIN_EMAIL
-        value: dagimawitkelem129@gmail.com
-
-      # Database connection from Render PostgreSQL
       - key: SPRING_DATASOURCE_URL
         fromDatabase:
           name: exhibition-db
