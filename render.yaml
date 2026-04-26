@@ -8,20 +8,44 @@ services:
       - key: SERVER_PORT
         value: "8888"
 
-      - key: SPRING_DATASOURCE_URL
+      - key: DB_URL
         fromDatabase:
           name: exhibition-db
           property: connectionString
 
-      - key: SPRING_DATASOURCE_USERNAME
+      - key: DB_USER
         fromDatabase:
           name: exhibition-db
           property: user
 
-      - key: SPRING_DATASOURCE_PASSWORD
+      - key: DB_PASSWORD
         fromDatabase:
           name: exhibition-db
           property: password
+
+      - key: DB_DRIVER
+        value: org.postgresql.Driver
+
+      - key: EMAIL_PROVIDER
+        value: smtp
+
+      - key: SMTP_HOST
+        value: smtp-relay.brevo.com
+
+      - key: SMTP_PORT
+        value: "587"
+
+      - key: SMTP_USER
+        value: a923b0001@smtp-brevo.com
+
+      - key: SMTP_FROM
+        value: dagimawitkelem129@gmail.com
+
+      - key: SMTP_USE_TLS
+        value: "true"
+
+      - key: ADMIN_EMAIL
+        value: dagimawitkelem129@gmail.com
 
   - type: static
     name: exhibition-frontend
