@@ -1,26 +1,42 @@
+
+<div class="fixed-header">
+  <h1>{{ 'welcome.title' | translate }}</h1>
+  <div class="header-actions">
+    <mat-form-field appearance="outline" class="language-selector">
+      <mat-select [(value)]="currentLanguage" (selectionChange)="onLanguageChange($event.value)" aria-label="Select language">
+        <mat-select-trigger>
+          <span class="selected-language">
+            {{ currentLanguage === 'en' ? '🇬🇧' : '🇪🇹' }} {{ currentLanguage === 'en' ? 'English' : 'አማርኛ' }}
+          </span>
+        </mat-select-trigger>
+        <mat-option *ngFor="let lang of languages" [value]="lang.code">
+          <span class="language-option">{{ lang.flag }} {{ lang.name }}</span>
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+</div>
+
 <div class="landing-container">
   
-  <!-- Hero Section -->
   <section class="hero-section">
     <div class="hero-content">
-      <h1>Welcome to the Exhibition Management System</h1>
-      <p>Discover amazing products, connect with exhibitors, and experience innovation at its finest</p>
+      <p>{{ 'welcome.subtitle' | translate }}</p>
       <div class="hero-buttons">
         <button class="register-btn" (click)="openRegisterDialog()">
           <mat-icon>person_add</mat-icon>
-          Register as Attendee
+          {{ 'welcome.register' | translate }}
         </button>
         <button class="login-btn" (click)="goToLogin()">
           <mat-icon>login</mat-icon>
-          Login
+          {{ 'welcome.login' | translate }}
         </button>
       </div>
     </div>
   </section>
 
-  <!-- Sponsors Section -->
   <section class="sponsors-section">
-    <h2>Our Sponsors</h2>
+    <h2>{{ 'common.sponsors' | translate }}</h2>
     <div class="sponsor-logos">
       <mat-card class="sponsor-card" *ngFor="let sponsor of sponsors">
         <img [src]="sponsor.logoUrl" [alt]="sponsor.name" class="sponsor-logo" (error)="$event.target.style.display='none'">
@@ -29,21 +45,20 @@
     </div>
   </section>
 
-  <!-- Exhibitors Section -->
   <section class="exhibitors-section">
-    <h2>Featured Exhibitors</h2>
+    <h2>{{ 'common.exhibitors' | translate }}</h2>
     <div class="exhibitor-logos">
       <mat-card class="exhibitor-card" *ngFor="let exhibitor of exhibitors">
         <img [src]="exhibitor.logoUrl" [alt]="exhibitor.name" class="exhibitor-logo" (error)="$event.target.style.display='none'">
-        <div class="exhibitor-name">{{ exhibitor.name }}</div>
-        <div class="exhibitor-booth">Booth: {{ exhibitor.boothNumber }}</div>
+        <div class="exhibitor-name">{{ exhibitor.companyName }}</div>
+        <div class="exhibitor-booth">{{ 'common.booth' | translate }}: {{ exhibitor.boothNumber }}</div>
+
       </mat-card>
     </div>
   </section>
 
-  <!-- Products Section -->
   <section class="products-section">
-    <h2>Featured Products</h2>
+    <h2>{{ 'common.products' | translate }}</h2>
     <div class="product-logos">
       <mat-card class="product-card" *ngFor="let product of products">
         <img [src]="product.imageUrl" [alt]="product.name" class="product-logo" (error)="$event.target.style.display='none'">
@@ -53,9 +68,8 @@
     </div>
   </section>
 
-  <!-- Conferences Section -->
   <section class="conferences-section">
-    <h2>Upcoming Conferences</h2>
+    <h2>{{ 'common.conferences' | translate }}</h2>
     <div class="conference-cards">
       <mat-card class="conference-card" *ngFor="let conference of conferences">
         <div class="conference-header">
@@ -71,35 +85,51 @@
             <div class="conference-location">
               <mat-icon>location_on</mat-icon>
               <span>{{ conference.location }}</span>
+              <span *ngIf="conference.floorNumber" class="location-details">
+                • {{ 'common.floor' | translate }} {{ conference.floorNumber }}
+              </span>
+              <span *ngIf="conference.boothNumber" class="location-details">
+                • {{ 'common.booth' | translate }} {{ conference.boothNumber }}
+              </span>
             </div>
-            <div class="conference-speaker" *ngIf="conference.speaker">
+            <div class="conference-speaker">
               <mat-icon>person</mat-icon>
-              <span>{{ conference.speaker }}</span>
+              <span>{{ conference.speaker || 'NaN' }}</span>
             </div>
           </div>
           <div class="conference-description">
             {{ conference.description }}
           </div>
         </div>
-        <div class="conference-actions">
-          <button class="view-details-btn" (click)="openConferenceRegistrationDialog(conference)">
-            <mat-icon>person_add</mat-icon>
-            Register
-          </button>
-        </div>
+
       </mat-card>
     </div>
   </section>
 
-  <!-- Footer -->
   <footer class="footer">
     <div class="footer-content">
-      <p>&copy; {{ currentYear }} Exhibition Management System. All rights reserved.</p>
-      <div class="footer-links">
-        <a href="#">Privacy Policy</a>
-        <a href="#">Terms of Service</a>
-        <a href="#">Contact Us</a>
+      <div class="contact-info">
+        <h3>{{ 'footer.contactUs' | translate }}</h3>
+        <div class="contact-details">
+          <div class="contact-item">
+            <mat-icon>location_on</mat-icon>
+            <span>{{ 'contact.address' | translate }}<span *ngIf="'contact.addressLine2' | translate"><br>{{ 'contact.addressLine2' | translate }}</span></span>
+          </div>
+          <div class="contact-item">
+            <mat-icon>phone</mat-icon>
+            <span>{{ 'contact.phone' | translate }}</span>
+          </div>
+          <div class="contact-item">
+            <mat-icon>email</mat-icon>
+            <span>{{ 'contact.email' | translate }}</span>
+          </div>
+          <div class="contact-item">
+            <mat-icon>schedule</mat-icon>
+            <span>{{ 'contact.hours' | translate }}<br>{{ 'contact.hoursWeekend' | translate }}</span>
+          </div>
+        </div>
       </div>
+      <p>&copy; {{ currentYear }} {{ 'footer.copyright' | translate }}</p>
     </div>
   </footer>
 </div>

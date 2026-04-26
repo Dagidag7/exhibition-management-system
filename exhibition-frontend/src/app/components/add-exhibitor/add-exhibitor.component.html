@@ -1,37 +1,101 @@
-<h2 mat-dialog-title>Add Exhibitor</h2>
-<form #exhibitorForm="ngForm" (ngSubmit)="onSubmit()">
-  <mat-form-field appearance="fill" class="full-width">
-    <mat-label>Name</mat-label>
-    <input matInput name="name" [(ngModel)]="exhibitor.name" required>
-  </mat-form-field>
-  
-  <mat-form-field appearance="fill" class="full-width">
-    <mat-label>Contact Person</mat-label>
-    <input matInput name="contactPerson" [(ngModel)]="exhibitor.contactPerson" required>
-  </mat-form-field>
-  
-  <mat-form-field appearance="fill" class="full-width">
-    <mat-label>Email</mat-label>
-    <input matInput name="email" [(ngModel)]="exhibitor.email" required type="email">
-  </mat-form-field>
-  
-  <mat-form-field appearance="fill" class="full-width">
-    <mat-label>Booth Number</mat-label>
-    <input matInput name="boothNumber" [(ngModel)]="exhibitor.boothNumber" required>
-  </mat-form-field>
-  
-  <mat-form-field appearance="fill" class="full-width">
-    <mat-label>Floor Number</mat-label>
-    <input matInput name="floorNumber" [(ngModel)]="exhibitor.floorNumber" required>
-  </mat-form-field>
-  
-  <mat-form-field appearance="fill" class="full-width">
-    <mat-label>Logo URL</mat-label>
-    <input matInput name="logoUrl" [(ngModel)]="exhibitor.logoUrl">
-  </mat-form-field>
-  
-  <div style="margin-top: 16px; text-align: right;">
-    <button mat-button type="button" (click)="onCancel()">Cancel</button>
-    <button mat-raised-button color="primary" type="submit" [disabled]="!exhibitorForm.form.valid">Add</button>
-  </div>
-</form>
+<div class="dialog-container">
+  <h2 mat-dialog-title>{{ 'form.addExhibitor' | translate }}</h2>
+  <form #exhibitorForm="ngForm" (ngSubmit)="onSubmit()">
+    <mat-dialog-content>
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>{{ 'form.companyName' | translate }}</mat-label>
+          <input matInput 
+                 name="companyName" 
+                 [(ngModel)]="exhibitor.companyName" 
+                 #companyNameRef="ngModel"
+                 required
+                 maxlength="100"
+                 [placeholder]="'form.companyName' | translate">
+          <mat-error *ngIf="companyNameRef.invalid && companyNameRef.touched">
+            {{ 'form.companyNameRequired' | translate }}
+          </mat-error>
+        </mat-form-field>
+      </div>
+      
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>{{ 'form.contactPerson' | translate }}</mat-label>
+          <input matInput 
+                 name="contactPerson" 
+                 [(ngModel)]="exhibitor.contactPerson" 
+                 #contactPersonRef="ngModel"
+                 required
+                 maxlength="100"
+                 [placeholder]="'form.contactPerson' | translate">
+          <mat-error *ngIf="contactPersonRef.invalid && contactPersonRef.touched">
+            {{ 'form.contactPersonRequired' | translate }}
+          </mat-error>
+        </mat-form-field>
+      </div>
+      
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>{{ 'form.email' | translate }}</mat-label>
+          <input matInput 
+                 name="email" 
+                 [(ngModel)]="exhibitor.email" 
+                 #emailRef="ngModel"
+                 required 
+                 type="email"
+                 maxlength="100"
+                 [placeholder]="'form.email' | translate">
+          <mat-error *ngIf="emailRef.invalid && emailRef.touched">
+            {{ 'form.emailInvalid' | translate }}
+          </mat-error>
+        </mat-form-field>
+      </div>
+      
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>{{ 'form.boothNumber' | translate }}</mat-label>
+          <input matInput 
+                 name="boothNumber" 
+                 [(ngModel)]="exhibitor.boothNumber" 
+                 #boothNumberRef="ngModel"
+                 required
+                 maxlength="20"
+                 [placeholder]="'form.boothNumber' | translate">
+          <mat-error *ngIf="boothNumberRef.invalid && boothNumberRef.touched">
+            {{ 'form.boothNumberRequired' | translate }}
+          </mat-error>
+        </mat-form-field>
+      </div>
+      
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>{{ 'form.floorNumber' | translate }}</mat-label>
+          <input matInput 
+                 name="floorNumber" 
+                 [(ngModel)]="exhibitor.floorNumber" 
+                 #floorNumberRef="ngModel"
+                 required
+                 maxlength="10"
+                 [placeholder]="'form.floorNumber' | translate">
+          <mat-error *ngIf="floorNumberRef.invalid && floorNumberRef.touched">
+            {{ 'form.floorNumberRequired' | translate }}
+          </mat-error>
+        </mat-form-field>
+      </div>
+      
+      <div class="form-row">
+        <app-image-upload
+          [currentImageUrl]="exhibitor.logoUrl"
+          category="logos"
+          [label]="'form.companyLogo' | translate"
+          (imageUrlChange)="onLogoUploaded($event)">
+        </app-image-upload>
+      </div>
+    </mat-dialog-content>
+    
+    <mat-dialog-actions align="end">
+      <button mat-button type="button" (click)="onCancel()">{{ 'form.cancel' | translate }}</button>
+      <button mat-raised-button color="primary" type="submit">{{ 'form.addExhibitor' | translate }}</button>
+    </mat-dialog-actions>
+  </form>
+</div>

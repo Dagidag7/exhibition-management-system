@@ -7,6 +7,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Floor, FloorService } from '../../services/floor.service';
+import { ValidationService } from '../../services/validation.service';
 
 @Component({
   selector: 'app-add-floor',
@@ -26,11 +27,13 @@ export class AddFloorComponent implements OnInit {
   floorForm: FormGroup;
   isEditMode = false;
   floorId?: number;
+  floorOccupancy: any = null;
 
   constructor(
     private fb: FormBuilder,
     private dialogRef: MatDialogRef<AddFloorComponent>,
     private floorService: FloorService,
+    private validationService: ValidationService,
     private snackBar: MatSnackBar,
     @Inject(MAT_DIALOG_DATA) public data: { floor?: Floor }
   ) {
@@ -52,11 +55,23 @@ export class AddFloorComponent implements OnInit {
         exhibitorIds: this.data.floor.exhibitorIds || '',
         conferenceIds: this.data.floor.conferenceIds || ''
       });
+      this.loadFloorOccupancy(this.data.floor.floorNumber);
     }
   }
 
+  loadFloorOccupancy(floorNumber: number): void {
+    this.floorService.getFloorOccupancy(floorNumber).subscribe({
+      next: (occupancy) => {
+        this.floorOccupancy = occupancy;
+      },
+      error: (error) => {
+        console.error('Error loading floor occupancy:', error);
+      }
+    });
+  }
+
   onSubmit() {
-    if (this.floorForm.valid) {
+    if (this.validateForm()) {
       const formValue = this.floorForm.value;
       
       if (this.isEditMode && this.floorId) {
@@ -114,6 +129,35 @@ export class AddFloorComponent implements OnInit {
         });
       }
     }
+  }
+
+  validateForm(): boolean {
+    const formValue = this.floorForm.value;
+
+    // Validate floor number
+    if (!formValue.floorNumber || formValue.floorNumber < 1) {
+      this.snackBar.open('Floor number must be at least 1', 'Close', {
+        duration: 4000,
+        horizontalPosition: 'center',
+        verticalPosition: 'top'
+      });
+      return false;
+    }
+
+    // Validate layout image URL if provided
+    if (formValue.layoutImage && formValue.layoutImage.trim() !== '') {
+      const urlValidation = this.validationService.validateUrl(formValue.layoutImage);
+      if (!urlValidation.isValid) {
+        this.snackBar.open(urlValidation.message, 'Close', {
+          duration: 4000,
+          horizontalPosition: 'center',
+          verticalPosition: 'top'
+        });
+        return false;
+      }
+    }
+
+    return true;
   }
 
   onCancel() {

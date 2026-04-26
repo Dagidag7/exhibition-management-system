@@ -11,4 +11,6 @@ public interface AttendeeService {
     void listAttendees(Handler<AsyncResult<List<Attendee>>> resultHandler);
     void updateAttendee(Attendee attendee, Handler<AsyncResult<Void>> resultHandler);
     void removeAttendee(int id, Handler<AsyncResult<Void>> resultHandler);
+    void updateAttendeePassword(int attendeeId, String password, Handler<AsyncResult<Void>> resultHandler);
+    void updatePaymentFeeByEmail(String email, Double paymentFee, Handler<AsyncResult<Void>> resultHandler);
 }

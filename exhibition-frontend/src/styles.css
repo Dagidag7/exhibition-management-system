@@ -3,14 +3,25 @@
 html, body { height: 100%; }
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 
-/* Global blue/teal theme consistency */
+/* Global blue/teal theme consistency - Light Mode */
 :root {
   --primary-blue: #1A5276;
   --secondary-blue: #2E86AB;
   --light-blue: #E3F2FD;
   --accent-blue: #007BFF;
   --teal-blue: #00838F;
+  
+  /* Light mode colors */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f5f5f5;
+  --bg-tertiary: #fafafa;
+  --text-primary: #333333;
+  --text-secondary: #666666;
+  --text-tertiary: #999999;
+  --border-color: #e0e0e0;
+  --shadow: rgba(0, 0, 0, 0.1);
 }
+
 
 /* Material Design overrides for consistent theming */
 .mat-mdc-raised-button.mat-primary {
@@ -92,9 +103,12 @@ a:hover {
   background-color: var(--light-blue) !important;
 }
 
+
 .mat-mdc-card-title {
   color: var(--primary-blue) !important;
 }
+
+
 
 /* Table headers */
 .mat-mdc-header-cell {
@@ -104,10 +118,12 @@ a:hover {
 }
 
 /* Success/error states */
-.mat-mdc-snack-bar-container.mat-success .mdc-snackbar__surface {
+.mat-mdc-snack-bar-container.mat-success .mdc-snackbar__surface,
+.mat-mdc-snack-bar-container.success-snackbar .mdc-snackbar__surface {
   background-color: #28A745 !important;
 }
 
-.mat-mdc-snack-bar-container.mat-error .mdc-snackbar__surface {
+.mat-mdc-snack-bar-container.mat-error .mdc-snackbar__surface,
+.mat-mdc-snack-bar-container.error-snackbar .mdc-snackbar__surface {
   background-color: #DC3545 !important;
 }

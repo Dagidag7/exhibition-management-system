@@ -18,10 +18,11 @@ public class PartnerRepositoryImpl implements PartnerRepository {
 
     @Override
     public void addPartner(Partner partner, Handler<AsyncResult<Void>> resultHandler) {
-        String sql = "INSERT INTO partner (name, contact_person, partnership_type, benefits) VALUES (?, ?, ?, ?)";
+        String sql = "INSERT INTO partner (name, contact_person, email, partnership_type, benefits) VALUES (?, ?, ?, ?, ?)";
         JsonArray params = new JsonArray()
                 .add(partner.getName())
                 .add(partner.getContactPerson())
+                .add(partner.getEmail())
                 .add(partner.getPartnershipType())
                 .add(partner.getBenefits());
 
@@ -56,6 +57,7 @@ public class PartnerRepositoryImpl implements PartnerRepository {
                         partner.setPartnerId(row.getInteger("partner_id"));
                         partner.setName(row.getString("name"));
                         partner.setContactPerson(row.getString("contact_person"));
+                        partner.setEmail(row.getString("email"));
                         partner.setPartnershipType(row.getString("partnership_type"));
                         partner.setBenefits(row.getString("benefits"));
                         resultHandler.handle(io.vertx.core.Future.succeededFuture(partner));
@@ -84,6 +86,7 @@ public class PartnerRepositoryImpl implements PartnerRepository {
                             partner.setPartnerId(row.getInteger("partner_id"));
                             partner.setName(row.getString("name"));
                             partner.setContactPerson(row.getString("contact_person"));
+                            partner.setEmail(row.getString("email"));
                             partner.setPartnershipType(row.getString("partnership_type"));
                             partner.setBenefits(row.getString("benefits"));
                             partners.add(partner);
@@ -101,10 +104,11 @@ public class PartnerRepositoryImpl implements PartnerRepository {
 
     @Override
     public void updatePartner(Partner partner, Handler<AsyncResult<Void>> resultHandler) {
-        String sql = "UPDATE partner SET name=?, contact_person=?, partnership_type=?, benefits=? WHERE partner_id=?";
+        String sql = "UPDATE partner SET name=?, contact_person=?, email=?, partnership_type=?, benefits=? WHERE partner_id=?";
         JsonArray params = new JsonArray()
                 .add(partner.getName())
                 .add(partner.getContactPerson())
+                .add(partner.getEmail())
                 .add(partner.getPartnershipType())
                 .add(partner.getBenefits())
                 .add(partner.getPartnerId());

@@ -7,6 +7,8 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Speaker, SpeakerService } from '../../services/speaker.service';
+import { ValidationService } from '../../services/validation.service';
+import { TranslatePipe } from '../../pipes/translate.pipe';
 
 @Component({
   selector: 'app-add-speaker',
@@ -16,7 +18,8 @@ import { Speaker, SpeakerService } from '../../services/speaker.service';
     ReactiveFormsModule,
     MatFormFieldModule,
     MatInputModule,
-    MatButtonModule
+    MatButtonModule,
+    TranslatePipe
   ],
   templateUrl: './add-speaker.component.html',
   styleUrls: ['./add-speaker.component.css']
@@ -30,6 +33,7 @@ export class AddSpeakerComponent implements OnInit {
     private fb: FormBuilder,
     private dialogRef: MatDialogRef<AddSpeakerComponent>,
     private speakerService: SpeakerService,
+    private validationService: ValidationService,
     private snackBar: MatSnackBar,
     @Inject(MAT_DIALOG_DATA) public data: any
   ) {
@@ -59,7 +63,7 @@ export class AddSpeakerComponent implements OnInit {
   }
 
   onSubmit() {
-    if (this.speakerForm.valid) {
+    if (this.validateForm()) {
       const formValue = this.speakerForm.value;
       
       if (this.isEditMode && this.speakerId) {
@@ -118,6 +122,62 @@ export class AddSpeakerComponent implements OnInit {
         });
       }
     }
+  }
+
+  validateForm(): boolean {
+    const formValue = this.speakerForm.value;
+
+    // Validate name
+    const nameValidation = this.validationService.validateName(formValue.name);
+    if (!nameValidation.isValid) {
+      this.snackBar.open(nameValidation.message, 'Close', {
+        duration: 4000,
+        horizontalPosition: 'center',
+        verticalPosition: 'top'
+      });
+      return false;
+    }
+
+    // Validate email if provided
+    if (formValue.email && formValue.email.trim() !== '') {
+      const emailValidation = this.validationService.validateEmail(formValue.email);
+      if (!emailValidation.isValid) {
+        this.snackBar.open(emailValidation.message, 'Close', {
+          duration: 4000,
+          horizontalPosition: 'center',
+          verticalPosition: 'top'
+        });
+        return false;
+      }
+    }
+
+    // Validate phone if provided
+    if (formValue.phone && formValue.phone.trim() !== '') {
+      const phoneValidation = this.validationService.validatePhone(formValue.phone);
+      if (!phoneValidation.isValid) {
+        this.snackBar.open(phoneValidation.message, 'Close', {
+          duration: 4000,
+          horizontalPosition: 'center',
+          verticalPosition: 'top'
+        });
+        return false;
+      }
+    }
+
+    // Validate organization if provided
+    if (formValue.organization && formValue.organization.trim() !== '') {
+      const organizationValidation = this.validationService.validateCompanyName(formValue.organization);
+      if (!organizationValidation.isValid) {
+        this.snackBar.open('Organization: ' + organizationValidation.message, 'Close', {
+          duration: 4000,
+          horizontalPosition: 'center',
+          verticalPosition: 'top'
+        });
+        return false;
+      }
+    }
+
+    return true;
   }
 
   onCancel() {

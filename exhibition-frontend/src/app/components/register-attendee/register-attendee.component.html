@@ -1,24 +1,55 @@
 <div class="register-dialog">
     <mat-card>
-    <mat-card-header>
-        <mat-card-title>Register as Attendee</mat-card-title>
-    </mat-card-header>
-    
-    <mat-card-content>
-        <form (ngSubmit)="onSubmit()" #registerForm="ngForm">
+    <!-- Step 1: Registration -->
+    <div *ngIf="currentStep === 1">
+        <mat-card-header>
+            <mat-card-title>Create Your Account</mat-card-title>
+            <mat-card-subtitle>Step 1 of 2 - Personal Information</mat-card-subtitle>
+        </mat-card-header>
+        
+        <mat-card-content>
+            <form (ngSubmit)="onRegisterSubmit()" #registerForm="ngForm">
         <mat-form-field appearance="outline" class="full-width">
             <mat-label>Full Name</mat-label>
-            <input matInput [(ngModel)]="attendee.name" name="name" required>
+            <input matInput 
+                   [(ngModel)]="attendee.name" 
+                   name="name" 
+                   #nameRef="ngModel"
+                   required
+                   maxlength="100"
+                   placeholder="Enter your full name">
+            <mat-error *ngIf="nameRef.invalid && nameRef.touched">
+              Full name is required
+            </mat-error>
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="full-width">
             <mat-label>Email</mat-label>
-            <input matInput type="email" [(ngModel)]="attendee.email" name="email" required>
+            <input matInput 
+                   type="email" 
+                   [(ngModel)]="attendee.email" 
+                   name="email" 
+                   #emailRef="ngModel"
+                   required
+                   maxlength="100"
+                   placeholder="Enter your email address">
+            <mat-error *ngIf="emailRef.invalid && emailRef.touched">
+              Please enter a valid email address
+            </mat-error>
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="full-width">
             <mat-label>Phone Number</mat-label>
-            <input matInput [(ngModel)]="attendee.phone" name="phone" required>
+            <input matInput 
+                   [(ngModel)]="attendee.phone" 
+                   name="phone" 
+                   #phoneRef="ngModel"
+                   required
+                   maxlength="20"
+                   placeholder="Enter your phone number">
+            <mat-error *ngIf="phoneRef.invalid && phoneRef.touched">
+              Phone number is required
+            </mat-error>
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="full-width">
@@ -27,11 +58,18 @@
                  [type]="showPassword ? 'text' : 'password'" 
                  [(ngModel)]="attendee.password" 
                  name="password" 
+                 #passwordRef="ngModel"
                  required
-                 minlength="6">
+                 minlength="6"
+                 maxlength="50"
+                 placeholder="Create a secure password"
+                 autocomplete="new-password">
           <button mat-icon-button matSuffix (click)="togglePasswordVisibility()" type="button">
             <mat-icon>{{showPassword ? 'visibility_off' : 'visibility'}}</mat-icon>
           </button>
+          <mat-error *ngIf="passwordRef.invalid && passwordRef.touched">
+            Password must be at least 6 characters
+          </mat-error>
         </mat-form-field>
 
         <!-- Password Strength Indicator -->
@@ -53,7 +91,8 @@
                  [type]="showConfirmPassword ? 'text' : 'password'" 
                  [(ngModel)]="confirmPassword" 
                  name="confirmPassword" 
-                 required>
+                 required
+                 autocomplete="new-password">
           <button mat-icon-button matSuffix (click)="toggleConfirmPasswordVisibility()" type="button">
             <mat-icon>{{showConfirmPassword ? 'visibility_off' : 'visibility'}}</mat-icon>
           </button>
@@ -69,19 +108,79 @@
           </span>
         </div>
 
-        <div class="form-actions">
-          <button mat-button type="button" (click)="onCancel()" [disabled]="isSubmitting">
-            Cancel
-          </button>
-          <button mat-raised-button 
-                  color="primary" 
-                  type="submit" 
-                  [disabled]="isSubmitting || !registerForm.form.valid">
-            <mat-icon *ngIf="isSubmitting">hourglass_empty</mat-icon>
-            {{ isSubmitting ? 'Registering...' : 'Register' }}
-            </button>
-        </div>
-        </form>
-    </mat-card-content>
+            <div class="info-note">
+              <mat-icon>info</mat-icon>
+              <span>After completing payment, your account will be created automatically.</span>
+            </div>
+
+            <div class="form-actions">
+              <button mat-button type="button" (click)="onCancel()" [disabled]="isSubmitting">
+                Cancel
+              </button>
+              <button mat-raised-button 
+                      color="primary" 
+                      type="submit" 
+                      [disabled]="isSubmitting || !registerForm.form.valid">
+                <mat-icon *ngIf="isSubmitting">hourglass_empty</mat-icon>
+                {{ isSubmitting ? 'Creating Account...' : 'Continue to Payment' }}
+              </button>
+            </div>
+            </form>
+        </mat-card-content>
+    </div>
+
+    <!-- Step 2: Payment -->
+    <div *ngIf="currentStep === 2">
+        <mat-card-header>
+            <mat-card-title>Complete Registration</mat-card-title>
+            <mat-card-subtitle>Step 2 of 2 - Payment Information</mat-card-subtitle>
+        </mat-card-header>
+        
+        <mat-card-content>
+            <div class="payment-summary">
+              <div class="summary-row">
+                <span class="label">Registration Fee:</span>
+                <span class="amount">${{ paymentAmount | number:'1.2-2' }}</span>
+              </div>
+              <div class="summary-row total">
+                <span class="label">Total Amount:</span>
+                <span class="amount">${{ paymentAmount | number:'1.2-2' }}</span>
+              </div>
+            </div>
+
+            <form (ngSubmit)="onPaymentSubmit()" #paymentForm="ngForm">
+              <div class="custom-field">
+                <label class="custom-label">
+                  <mat-icon>credit_card</mat-icon>
+                  Card Information
+                </label>
+                <div class="input-like">
+                  <div id="card-element" class="stripe-card"></div>
+                </div>
+                <div class="security-note">
+                  <mat-icon>lock</mat-icon>
+                  <span>Your payment information is secure and encrypted</span>
+                </div>
+              </div>
+
+              <div class="form-actions">
+                <button mat-button type="button" (click)="goBackToRegistration()">
+                  <mat-icon>arrow_back</mat-icon>
+                  Back
+                </button>
+                <button mat-button type="button" (click)="onCancel()">
+                  Cancel
+                </button>
+                <button mat-raised-button 
+                        color="primary" 
+                        type="submit" 
+                        [disabled]="isSubmitting || !cardElementMounted">
+                  <mat-icon *ngIf="isSubmitting">hourglass_empty</mat-icon>
+                  {{ isSubmitting ? 'Processing Payment...' : 'Complete Payment' }}
+                </button>
+              </div>
+            </form>
+        </mat-card-content>
+    </div>
     </mat-card>
 </div>

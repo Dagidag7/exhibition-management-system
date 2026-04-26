@@ -3,12 +3,13 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 export interface Exhibitor {
-  exhibitorId: number;
-  name: string;
+  id?: number;          
+  exhibitorId: number; 
+  companyName: string;
   contactPerson: string;
   email: string;
   boothNumber: string;
-  productIds: string;
+  productIds?: number;
   logoUrl: string;
   floorNumber?: string;
   status?: string;
@@ -35,15 +36,31 @@ export class ExhibitorService {
     return this.http.get<Exhibitor>(`${this.apiUrl}/${id}`);
   }
 
-  updateExhibitor(id: number, exhibitor: Exhibitor): Observable<Exhibitor> {
-    return this.http.put<Exhibitor>(`${this.apiUrl}/${id}`, exhibitor);
-  }
-
+  updateExhibitor(id: number, data: any): Observable<any> {
+    console.log("data....",data)
+  return this.http.put(`${this.apiUrl}/${id}`, data);
+}
   deleteExhibitor(id: number): Observable<any> {
     return this.http.delete(`${this.apiUrl}/${id}`);
   }
 
   changePassword(id: number, password: string): Observable<any> {
     return this.http.put(`${this.apiUrl}/${id}/password`, { password });
+  }
+
+  checkExhibitorStatus(id: number): Observable<{ status: string }> {
+    return this.http.get<{ status: string }>(`${this.apiUrl}/${id}/status`);
+  }
+
+  resetPassword(email: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/reset-password`, { email });
+  }
+
+  downloadReceipt(id: number): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/${id}/receipt`, { responseType: 'blob' });
+  }
+
+  sendPaymentRequest(email: string, companyName: string, paymentLink: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/send-payment-request`, { email, companyName, paymentLink });
   }
 }

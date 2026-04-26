@@ -3,9 +3,10 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 export interface Sponsor {
-  sponsorId: number;
+  sponsorId?: number;
   name: string;
   contactPerson: string;
+  email?: string;
   contributionAmount: number;
   benefits: string;
   logoUrl: string;
@@ -37,5 +38,9 @@ export class SponsorService {
 
   deleteSponsor(id: number): Observable<any> {
     return this.http.delete(`${this.apiUrl}/${id}`);
+  }
+
+  createPayment(amount: number): Observable<any> {
+    return this.http.post(`${this.apiUrl}/api/payment`, { amount });
   }
 }

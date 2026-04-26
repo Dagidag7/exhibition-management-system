@@ -1,11 +1,9 @@
-/* Admin Container Layout */
 .admin-container {
   display: flex;
   height: 100vh;
   background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
 }
 
-/* Sidebar Styles */
 .sidebar {
   width: 280px;
   background: linear-gradient(180deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
@@ -84,11 +82,6 @@
 .nav-item span {
   font-size: 16px;
   font-weight: 500;
-}
-
-.sidebar-footer {
-  padding: 20px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .user-info {
@@ -432,26 +425,7 @@ mat-chip {
   transform: scale(1.05);
 }
 
-.toggle-btn {
-  background: linear-gradient(135deg, #66bb6a, #4caf50);
-  color: white;
-  padding: 8px 16px;
-  border-radius: 6px;
-  font-size: 12px;
-  font-weight: 500;
-}
 
-.toggle-btn:hover {
-  background: linear-gradient(135deg, #4caf50, #388e3c);
-}
-
-.toggle-btn.inactive {
-  background: linear-gradient(135deg, #ff7043, #ff5722);
-}
-
-.toggle-btn.inactive:hover {
-  background: linear-gradient(135deg, #ff5722, #e64a19);
-}
 
 .status-badge {
   padding: 6px 12px;

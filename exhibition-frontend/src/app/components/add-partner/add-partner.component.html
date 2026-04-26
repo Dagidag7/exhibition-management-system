@@ -1,62 +1,71 @@
 <div class="dialog-container">
-  <h2 mat-dialog-title>{{ isEditMode ? 'Edit Partner' : 'Add New Partner' }}</h2>
+  <h2 mat-dialog-title>{{ isEditMode ? ('form.editPartner' | translate) : ('form.addPartner' | translate) }}</h2>
   
   <form [formGroup]="partnerForm" (ngSubmit)="onSubmit()">
     <mat-dialog-content>
       <div class="form-row">
         <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Partner Name</mat-label>
-          <input matInput formControlName="name" placeholder="Enter partner name" required>
+          <mat-label>{{ 'form.partnerName' | translate }}</mat-label>
+          <input matInput formControlName="name" [placeholder]="'form.partnerName' | translate" required maxlength="100">
           <mat-error *ngIf="partnerForm.get('name')?.hasError('required')">
-            Partner name is required
+            {{ 'form.partnerNameRequired' | translate }}
           </mat-error>
           <mat-error *ngIf="partnerForm.get('name')?.hasError('maxlength')">
-            Partner name cannot exceed 100 characters
+            {{ 'form.partnerNameMaxLength' | translate }}
           </mat-error>
     </mat-form-field>
       </div>
 
       <div class="form-row">
         <mat-form-field appearance="outline" class="full-width">
-      <mat-label>Contact Person</mat-label>
-          <input matInput formControlName="contactPerson" placeholder="Enter contact person name" required>
+      <mat-label>{{ 'form.contactPerson' | translate }}</mat-label>
+          <input matInput formControlName="contactPerson" [placeholder]="'form.contactPerson' | translate" required maxlength="100">
           <mat-error *ngIf="partnerForm.get('contactPerson')?.hasError('required')">
-            Contact person is required
+            {{ 'form.contactPersonRequired' | translate }}
           </mat-error>
           <mat-error *ngIf="partnerForm.get('contactPerson')?.hasError('maxlength')">
-            Contact person name cannot exceed 100 characters
+            {{ 'form.contactPersonMaxLength' | translate }}
           </mat-error>
     </mat-form-field>
       </div>
 
       <div class="form-row">
         <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Partnership Type</mat-label>
-          <input matInput formControlName="partnershipType" placeholder="Enter partnership type" required>
+          <mat-label>{{ 'form.email' | translate }}</mat-label>
+          <input matInput type="email" formControlName="email" [placeholder]="'form.email' | translate" maxlength="100">
+          <mat-error *ngIf="partnerForm.get('email')?.hasError('email')">
+            {{ 'form.emailInvalid' | translate }}
+          </mat-error>
+    </mat-form-field>
+      </div>
+
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>{{ 'form.partnershipType' | translate }}</mat-label>
+          <input matInput formControlName="partnershipType" [placeholder]="'form.partnershipType' | translate" required maxlength="100">
           <mat-error *ngIf="partnerForm.get('partnershipType')?.hasError('required')">
-            Partnership type is required
+            {{ 'form.partnershipTypeRequired' | translate }}
           </mat-error>
           <mat-error *ngIf="partnerForm.get('partnershipType')?.hasError('maxlength')">
-            Partnership type cannot exceed 100 characters
+            {{ 'form.partnershipTypeMaxLength' | translate }}
           </mat-error>
     </mat-form-field>
       </div>
 
       <div class="form-row">
         <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Benefits</mat-label>
-          <textarea matInput formControlName="benefits" placeholder="Enter partnership benefits" rows="3"></textarea>
-          <mat-hint>Describe the benefits of this partnership</mat-hint>
+          <mat-label>{{ 'form.benefits' | translate }}</mat-label>
+          <textarea matInput formControlName="benefits" [placeholder]="'form.partnershipBenefits' | translate" rows="3"></textarea>
     </mat-form-field>
     </div>
     </mat-dialog-content>
 
     <mat-dialog-actions align="end">
       <button mat-button type="button" (click)="onCancel()">
-        Cancel
+        {{ 'form.cancel' | translate }}
       </button>
       <button mat-raised-button color="primary" type="submit" [disabled]="partnerForm.invalid">
-        {{ isEditMode ? 'Update Partner' : 'Add Partner' }}
+        {{ isEditMode ? ('form.updatePartner' | translate) : ('form.addPartner' | translate) }}
       </button>
     </mat-dialog-actions>
   </form>

@@ -1,104 +1,97 @@
 <div class="admin-container">
-  <!-- Sidebar -->
   <div class="sidebar">
     <div class="sidebar-header">
-      <h2>Admin Panel</h2>
+      <h2>{{ 'admin.dashboard' | translate }}</h2>
     </div>
     
     <div class="nav-list">
       <a class="nav-item" [class.active]="activeTab === 'dashboard'" (click)="setActiveTab('dashboard')">
-        <mat-icon>dashboard</mat-icon>
-        <span>Dashboard</span>
+            <mat-icon>dashboard</mat-icon>
+            <span>{{ 'admin.dashboard' | translate }}</span>
       </a>
       <a class="nav-item" [class.active]="activeTab === 'attendees'" (click)="setActiveTab('attendees')">
-        <mat-icon>people</mat-icon>
-        <span>Attendee</span>
+            <mat-icon>people</mat-icon>
+            <span>{{ 'admin.attendees' | translate }}</span>
       </a>
       <a class="nav-item" [class.active]="activeTab === 'exhibitors'" (click)="setActiveTab('exhibitors')">
-        <mat-icon>business</mat-icon>
-        <span>Exhibitor</span>
+            <mat-icon>business</mat-icon>
+            <span>{{ 'admin.exhibitors' | translate }}</span>
       </a>
       <a class="nav-item" [class.active]="activeTab === 'conferences'" (click)="setActiveTab('conferences')">
-        <mat-icon>event</mat-icon>
-        <span>Conference</span>
+            <mat-icon>event</mat-icon>
+            <span>{{ 'admin.conferences' | translate }}</span>
       </a>
       <a class="nav-item" [class.active]="activeTab === 'speakers'" (click)="setActiveTab('speakers')">
-        <mat-icon>record_voice_over</mat-icon>
-        <span>Speaker</span>
+            <mat-icon>record_voice_over</mat-icon>
+            <span>{{ 'admin.speakers' | translate }}</span>
       </a>
       <a class="nav-item" [class.active]="activeTab === 'sponsors'" (click)="setActiveTab('sponsors')">
         <mat-icon>headset</mat-icon>
-        <span>Sponsor</span>
+            <span>{{ 'admin.sponsors' | translate }}</span>
       </a>
       <a class="nav-item" [class.active]="activeTab === 'products'" (click)="setActiveTab('products')">
-        <mat-icon>inventory</mat-icon>
-        <span>Product</span>
+            <mat-icon>inventory</mat-icon>
+            <span>{{ 'admin.products' | translate }}</span>
       </a>
       <a class="nav-item" [class.active]="activeTab === 'partners'" (click)="setActiveTab('partners')">
-        <mat-icon>handshake</mat-icon>
-        <span>Partner</span>
-      </a>
-      <a class="nav-item" [class.active]="activeTab === 'floors'" (click)="setActiveTab('floors')">
-        <mat-icon>layers</mat-icon>
-        <span>Floor</span>
+            <mat-icon>handshake</mat-icon>
+            <span>{{ 'admin.partners' | translate }}</span>
       </a>
       <a class="nav-item" [class.active]="activeTab === 'database'" (click)="setActiveTab('database')">
         <mat-icon>storage</mat-icon>
-        <span>Database</span>
+        <span>{{ 'admin.database' | translate }}</span>
       </a>
     </div>
     
     <div class="user-info">
-      Admin User
+      {{ 'admin.adminUser' | translate }}
     </div>
   </div>
 
-  <!-- Main Content -->
   <div class="main-content">
-    <!-- Dashboard Tab -->
     <div *ngIf="activeTab === 'dashboard'">
       <div class="content-header">
-        <h1>Dashboard Overview</h1>
-        <p>Welcome to the Exhibition Management System</p>
+        <h1>{{ 'admin.dashboardOverview' | translate }}</h1>
+        <p>{{ 'admin.welcomeMessage' | translate }}</p>
       </div>
-
+      
       <div class="dashboard-stats">
         <div class="stat-card">
-          <div class="stat-icon attendees">
-            <mat-icon>people</mat-icon>
-          </div>
+              <div class="stat-icon attendees">
+                <mat-icon>people</mat-icon>
+              </div>
           <div class="stat-number">{{attendees.length}}</div>
           <div class="stat-label">Total Attendees</div>
-        </div>
+            </div>
 
         <div class="stat-card">
-          <div class="stat-icon exhibitors">
-            <mat-icon>business</mat-icon>
-          </div>
+              <div class="stat-icon exhibitors">
+                <mat-icon>business</mat-icon>
+              </div>
           <div class="stat-number">{{exhibitors.length}}</div>
           <div class="stat-label">Total Exhibitors</div>
-        </div>
+            </div>
 
         <div class="stat-card">
-          <div class="stat-icon products">
-            <mat-icon>inventory</mat-icon>
-          </div>
+              <div class="stat-icon products">
+                <mat-icon>inventory</mat-icon>
+              </div>
           <div class="stat-number">{{products.length}}</div>
           <div class="stat-label">Total Products</div>
-        </div>
+            </div>
 
         <div class="stat-card">
-          <div class="stat-icon conferences">
-            <mat-icon>event</mat-icon>
-          </div>
+              <div class="stat-icon conferences">
+                <mat-icon>event</mat-icon>
+              </div>
           <div class="stat-number">{{conferences.length}}</div>
           <div class="stat-label">Total Conferences</div>
-        </div>
+            </div>
 
         <div class="stat-card">
-          <div class="stat-icon speakers">
-            <mat-icon>record_voice_over</mat-icon>
-          </div>
+              <div class="stat-icon speakers">
+                <mat-icon>record_voice_over</mat-icon>
+              </div>
           <div class="stat-number">{{speakers.length}}</div>
           <div class="stat-label">Total Speakers</div>
         </div>
@@ -106,10 +99,10 @@
         <div class="stat-card">
           <div class="stat-icon sponsors">
             <mat-icon>headset</mat-icon>
-          </div>
+              </div>
           <div class="stat-number">{{sponsors.length}}</div>
           <div class="stat-label">Total Sponsors</div>
-        </div>
+            </div>
 
         <div class="stat-card">
           <div class="stat-icon partners">
@@ -117,73 +110,44 @@
           </div>
           <div class="stat-number">{{partners.length}}</div>
           <div class="stat-label">Total Partners</div>
-        </div>
-
-        <div class="stat-card">
-          <div class="stat-icon floors">
-            <mat-icon>layers</mat-icon>
-          </div>
-          <div class="stat-number">{{floors.length}}</div>
-          <div class="stat-label">Total Floors</div>
-        </div>
+              </div>
       </div>
     </div>
 
-    <!-- Attendees Tab -->
     <div *ngIf="activeTab === 'attendees'" class="content-section">
       <div class="section-header">
-        <h2 class="section-title">Attendee Management</h2>
+        <h2 class="section-title">{{ 'admin.attendeeManagement' | translate }}</h2>
       </div>
 
       <div *ngIf="attendees.length === 0" class="empty-state">
         <mat-icon>people_outline</mat-icon>
-        <h3>No Attendees Found</h3>
-        <p>Attendees will appear here once they register</p>
+        <h3>{{ 'admin.noAttendeesFound' | translate }}</h3>
+        <p>{{ 'admin.attendeesAppearHere' | translate }}</p>
       </div>
-
+      
       <table *ngIf="attendees.length > 0" mat-table [dataSource]="attendees" class="mat-table">
         <ng-container matColumnDef="name">
-          <th mat-header-cell *matHeaderCellDef>Name</th>
+          <th mat-header-cell *matHeaderCellDef>{{ 'admin.name' | translate }}</th>
           <td mat-cell *matCellDef="let user">{{user.name}}</td>
         </ng-container>
 
         <ng-container matColumnDef="email">
-          <th mat-header-cell *matHeaderCellDef>Email</th>
+          <th mat-header-cell *matHeaderCellDef>{{ 'admin.email' | translate }}</th>
           <td mat-cell *matCellDef="let user">{{user.email}}</td>
         </ng-container>
 
         <ng-container matColumnDef="phone">
-          <th mat-header-cell *matHeaderCellDef>Phone</th>
+          <th mat-header-cell *matHeaderCellDef>{{ 'admin.phone' | translate }}</th>
           <td mat-cell *matCellDef="let user">{{user.phone || 'N/A'}}</td>
         </ng-container>
 
-        <ng-container matColumnDef="registrationDate">
-          <th mat-header-cell *matHeaderCellDef>Registration Date</th>
-          <td mat-cell *matCellDef="let user">{{getFormattedDate(user.registrationDate)}}</td>
-        </ng-container>
 
         <ng-container matColumnDef="status">
-          <th mat-header-cell *matHeaderCellDef>Status</th>
+          <th mat-header-cell *matHeaderCellDef>{{ 'admin.status' | translate }}</th>
           <td mat-cell *matCellDef="let user">
             <span class="status-badge" [class.status-active]="user.status === 'active'" [class.status-inactive]="user.status === 'inactive'">
               {{user.status || 'active'}}
             </span>
-          </td>
-        </ng-container>
-
-        <ng-container matColumnDef="actions">
-          <th mat-header-cell *matHeaderCellDef>Actions</th>
-          <td mat-cell *matCellDef="let user">
-            <div class="action-buttons">
-              <button class="action-button toggle-button" 
-                      [class.inactive]="user.status === 'inactive'"
-                      (click)="toggleUserStatus(user)">
-                {{user.status === 'inactive' ? 'Activate' : 'Deactivate'}}
-              </button>
-              <button class="action-button delete-button" (click)="deleteUser(user)">
-                <mat-icon>delete</mat-icon>
-              </button>
-            </div>
           </td>
         </ng-container>
 
@@ -192,45 +156,49 @@
       </table>
     </div>
 
-    <!-- Exhibitors Tab -->
     <div *ngIf="activeTab === 'exhibitors'" class="content-section">
       <div class="section-header">
-        <h2 class="section-title">Exhibitor Management</h2>
+        <h2 class="section-title">{{ 'admin.exhibitorManagement' | translate }}</h2>
         <button class="add-button" (click)="openAddExhibitorDialog()">
           <mat-icon>add</mat-icon>
-          Add Exhibitor
+          {{ 'admin.addExhibitor' | translate }}
         </button>
       </div>
-
+      
       <div *ngIf="exhibitors.length === 0" class="empty-state">
         <mat-icon>business_outline</mat-icon>
-        <h3>No Exhibitors Found</h3>
-        <p>Add your first exhibitor to get started</p>
+        <h3>{{ 'common.noResults' | translate }}</h3>
+        <p>{{ 'admin.addFirstExhibitor' | translate }}</p>
       </div>
 
       <table *ngIf="exhibitors.length > 0" mat-table [dataSource]="exhibitors" class="mat-table">
-        <ng-container matColumnDef="name">
-          <th mat-header-cell *matHeaderCellDef>Company Name</th>
+        <ng-container matColumnDef="companyName">
+          <th mat-header-cell *matHeaderCellDef>{{ 'admin.companyName' | translate }}</th>
           <td mat-cell *matCellDef="let user">{{user.companyName}}</td>
         </ng-container>
 
         <ng-container matColumnDef="email">
-          <th mat-header-cell *matHeaderCellDef>Email</th>
+          <th mat-header-cell *matHeaderCellDef>{{ 'admin.email' | translate }}</th>
           <td mat-cell *matCellDef="let user">{{user.email}}</td>
         </ng-container>
 
+        <ng-container matColumnDef="contactPerson">
+          <th mat-header-cell *matHeaderCellDef>{{ 'admin.contactPerson' | translate }}</th>
+          <td mat-cell *matCellDef="let user">{{user.contactPerson || 'N/A'}}</td>
+        </ng-container>
+
         <ng-container matColumnDef="boothNumber">
-          <th mat-header-cell *matHeaderCellDef>Booth Number</th>
+          <th mat-header-cell *matHeaderCellDef>{{ 'admin.boothNumber' | translate }}</th>
           <td mat-cell *matCellDef="let user">{{user.boothNumber || 'N/A'}}</td>
         </ng-container>
 
         <ng-container matColumnDef="floorNumber">
-          <th mat-header-cell *matHeaderCellDef>Floor</th>
+          <th mat-header-cell *matHeaderCellDef>{{ 'admin.floor' | translate }}</th>
           <td mat-cell *matCellDef="let user">{{user.floorNumber || 'N/A'}}</td>
         </ng-container>
 
         <ng-container matColumnDef="status">
-          <th mat-header-cell *matHeaderCellDef>Status</th>
+          <th mat-header-cell *matHeaderCellDef>{{ 'admin.status' | translate }}</th>
           <td mat-cell *matCellDef="let user">
             <span class="status-badge" [class.status-active]="user.status === 'active'" [class.status-inactive]="user.status === 'inactive'">
               {{user.status || 'active'}}
@@ -238,17 +206,25 @@
           </td>
         </ng-container>
 
+        <ng-container matColumnDef="productIds">
+          <th mat-header-cell *matHeaderCellDef>{{ 'admin.productIds' | translate }}</th>
+          <td mat-cell *matCellDef="let user">{{user.productIds || 'N/A'}}</td>
+        </ng-container>
+
         <ng-container matColumnDef="actions">
-          <th mat-header-cell *matHeaderCellDef>Actions</th>
+          <th mat-header-cell *matHeaderCellDef>{{ 'common.actions' | translate }}</th>
           <td mat-cell *matCellDef="let user">
             <div class="action-buttons">
-              <button class="action-button edit-button" (click)="editExhibitor(user)">
-                <mat-icon>edit</mat-icon>
+              <button class="action-button" (click)="requestExhibitorPayment(user)" [title]="'admin.requestPayment' | translate">
+                <mat-icon>payment</mat-icon>
               </button>
+              <button class="action-button edit-button" (click)="editExhibitor(user)">
+              <mat-icon>edit</mat-icon>
+            </button>
               <button class="action-button toggle-button" 
                       [class.inactive]="user.status === 'inactive'"
                       (click)="toggleUserStatus(user)">
-                {{user.status === 'inactive' ? 'Activate' : 'Deactivate'}}
+                {{ user.status === 'inactive' ? ('admin.activate' | translate) : ('admin.deactivate' | translate) }}
               </button>
               <button class="action-button delete-button" (click)="deleteUser(user)">
                 <mat-icon>delete</mat-icon>
@@ -265,44 +241,52 @@
     <!-- Sponsors Tab -->
     <div *ngIf="activeTab === 'sponsors'" class="content-section">
       <div class="section-header">
-        <h2 class="section-title">Sponsor Management</h2>
+        <h2 class="section-title">{{ 'admin.sponsorManagement' | translate }}</h2>
         <button class="add-button" (click)="openAddSponsorDialog()">
           <mat-icon>add</mat-icon>
-          Add Sponsor
+          {{ 'admin.addSponsor' | translate }}
         </button>
       </div>
 
       <div *ngIf="sponsors.length === 0" class="empty-state">
         <mat-icon>headset_outline</mat-icon>
-        <h3>No Sponsors Found</h3>
-        <p>Add your first sponsor to get started</p>
+        <h3>{{ 'admin.noSponsorsFound' | translate }}</h3>
+        <p>{{ 'admin.addFirstSponsor' | translate }}</p>
       </div>
 
       <table *ngIf="sponsors.length > 0" mat-table [dataSource]="sponsors" class="mat-table">
         <ng-container matColumnDef="name">
-          <th mat-header-cell *matHeaderCellDef>Name</th>
+          <th mat-header-cell *matHeaderCellDef>{{ 'admin.name' | translate }}</th>
           <td mat-cell *matCellDef="let sponsor">{{sponsor.name}}</td>
         </ng-container>
 
         <ng-container matColumnDef="contactPerson">
-          <th mat-header-cell *matHeaderCellDef>Contact Person</th>
+          <th mat-header-cell *matHeaderCellDef>{{ 'admin.contactPerson' | translate }}</th>
           <td mat-cell *matCellDef="let sponsor">{{sponsor.contactPerson}}</td>
         </ng-container>
 
+        <ng-container matColumnDef="email">
+          <th mat-header-cell *matHeaderCellDef>{{ 'admin.email' | translate }}</th>
+          <td mat-cell *matCellDef="let sponsor">{{sponsor.email || 'N/A'}}</td>
+        </ng-container>
+
         <ng-container matColumnDef="contributionAmount">
-          <th mat-header-cell *matHeaderCellDef>Contribution</th>
+          <th mat-header-cell *matHeaderCellDef>{{ 'admin.contribution' | translate }}</th>
           <td mat-cell *matCellDef="let sponsor">${{sponsor.contributionAmount}}</td>
         </ng-container>
 
         <ng-container matColumnDef="benefits">
-          <th mat-header-cell *matHeaderCellDef>Benefits</th>
+          <th mat-header-cell *matHeaderCellDef>{{ 'admin.benefits' | translate }}</th>
           <td mat-cell *matCellDef="let sponsor">{{sponsor.benefits || 'N/A'}}</td>
         </ng-container>
 
         <ng-container matColumnDef="actions">
-          <th mat-header-cell *matHeaderCellDef>Actions</th>
+          <th mat-header-cell *matHeaderCellDef>{{ 'common.actions' | translate }}</th>
           <td mat-cell *matCellDef="let sponsor">
             <div class="action-buttons">
+              <button class="action-button" (click)="requestSponsorPayment(sponsor)" [title]="'admin.requestPayment' | translate">
+                <mat-icon>payment</mat-icon>
+              </button>
               <button class="action-button edit-button" (click)="editSponsor(sponsor)">
                 <mat-icon>edit</mat-icon>
               </button>
@@ -321,42 +305,47 @@
     <!-- Partners Tab -->
     <div *ngIf="activeTab === 'partners'" class="content-section">
       <div class="section-header">
-        <h2 class="section-title">Partner Management</h2>
+        <h2 class="section-title">{{ 'admin.partnerManagement' | translate }}</h2>
         <button class="add-button" (click)="openAddPartnerDialog()">
           <mat-icon>add</mat-icon>
-          Add Partner
+          {{ 'admin.addPartner' | translate }}
         </button>
       </div>
-
+      
       <div *ngIf="partners.length === 0" class="empty-state">
         <mat-icon>handshake_outline</mat-icon>
-        <h3>No Partners Found</h3>
-        <p>Add your first partner to get started</p>
+        <h3>{{ 'admin.noPartnersFound' | translate }}</h3>
+        <p>{{ 'admin.addFirstPartner' | translate }}</p>
       </div>
 
       <table *ngIf="partners.length > 0" mat-table [dataSource]="partners" class="mat-table">
         <ng-container matColumnDef="name">
-          <th mat-header-cell *matHeaderCellDef>Name</th>
+          <th mat-header-cell *matHeaderCellDef>{{ 'admin.name' | translate }}</th>
           <td mat-cell *matCellDef="let partner">{{partner.name}}</td>
         </ng-container>
 
         <ng-container matColumnDef="contactPerson">
-          <th mat-header-cell *matHeaderCellDef>Contact Person</th>
+          <th mat-header-cell *matHeaderCellDef>{{ 'admin.contactPerson' | translate }}</th>
           <td mat-cell *matCellDef="let partner">{{partner.contactPerson}}</td>
         </ng-container>
 
+        <ng-container matColumnDef="email">
+          <th mat-header-cell *matHeaderCellDef>{{ 'admin.email' | translate }}</th>
+          <td mat-cell *matCellDef="let partner">{{partner.email || 'N/A'}}</td>
+        </ng-container>
+
         <ng-container matColumnDef="partnershipType">
-          <th mat-header-cell *matHeaderCellDef>Partnership Type</th>
+          <th mat-header-cell *matHeaderCellDef>{{ 'admin.partnershipType' | translate }}</th>
           <td mat-cell *matCellDef="let partner">{{partner.partnershipType}}</td>
         </ng-container>
 
         <ng-container matColumnDef="benefits">
-          <th mat-header-cell *matHeaderCellDef>Benefits</th>
+          <th mat-header-cell *matHeaderCellDef>{{ 'admin.benefits' | translate }}</th>
           <td mat-cell *matCellDef="let partner">{{partner.benefits || 'N/A'}}</td>
         </ng-container>
 
         <ng-container matColumnDef="actions">
-          <th mat-header-cell *matHeaderCellDef>Actions</th>
+          <th mat-header-cell *matHeaderCellDef>{{ 'common.actions' | translate }}</th>
           <td mat-cell *matCellDef="let partner">
             <div class="action-buttons">
               <button class="action-button edit-button" (click)="editPartner(partner)">
@@ -374,91 +363,40 @@
       </table>
     </div>
 
-    <!-- Floors Tab -->
-    <div *ngIf="activeTab === 'floors'" class="content-section">
-      <div class="section-header">
-        <h2 class="section-title">Floor Management</h2>
-        <button class="add-button" (click)="openAddFloorDialog()">
-          <mat-icon>add</mat-icon>
-          Add Floor
-        </button>
-      </div>
-
-      <div *ngIf="floors.length === 0" class="empty-state">
-        <mat-icon>layers_outline</mat-icon>
-        <h3>No Floors Found</h3>
-        <p>Add your first floor to get started</p>
-      </div>
-
-      <table *ngIf="floors.length > 0" mat-table [dataSource]="floors" class="mat-table">
-        <ng-container matColumnDef="floorNumber">
-          <th mat-header-cell *matHeaderCellDef>Floor Number</th>
-          <td mat-cell *matCellDef="let floor">{{floor.floorNumber}}</td>
-        </ng-container>
-
-        <ng-container matColumnDef="layoutImage">
-          <th mat-header-cell *matHeaderCellDef>Layout Image</th>
-          <td mat-cell *matCellDef="let floor">{{floor.layoutImage || 'N/A'}}</td>
-        </ng-container>
-
-        <ng-container matColumnDef="exhibitorIds">
-          <th mat-header-cell *matHeaderCellDef>Exhibitors</th>
-          <td mat-cell *matCellDef="let floor">{{floor.exhibitorIds || 'N/A'}}</td>
-        </ng-container>
-
-        <ng-container matColumnDef="conferenceIds">
-          <th mat-header-cell *matHeaderCellDef>Conferences</th>
-          <td mat-cell *matCellDef="let floor">{{floor.conferenceIds || 'N/A'}}</td>
-        </ng-container>
-
-        <ng-container matColumnDef="actions">
-          <th mat-header-cell *matHeaderCellDef>Actions</th>
-          <td mat-cell *matCellDef="let floor">
-            <div class="action-buttons">
-              <button class="action-button edit-button" (click)="editFloor(floor)">
-                <mat-icon>edit</mat-icon>
-              </button>
-              <button class="action-button delete-button" (click)="deleteFloor(floor)">
-                <mat-icon>delete</mat-icon>
-              </button>
-            </div>
-          </td>
-        </ng-container>
-
-        <tr mat-header-row *matHeaderRowDef="floorDisplayedColumns"></tr>
-        <tr mat-row *matRowDef="let row; columns: floorDisplayedColumns;"></tr>
-      </table>
-    </div>
-
     <!-- Products Tab -->
     <div *ngIf="activeTab === 'products'" class="content-section">
       <div class="section-header">
-        <h2 class="section-title">Product Management</h2>
+        <h2 class="section-title">{{ 'admin.productManagement' | translate }}</h2>
         <button class="add-button" (click)="openAddProductDialog()">
           <mat-icon>add</mat-icon>
-          Add Product
+          {{ 'admin.addProduct' | translate }}
         </button>
       </div>
-
+      
       <div *ngIf="products.length === 0" class="empty-state">
         <mat-icon>inventory_outline</mat-icon>
-        <h3>No Products Found</h3>
-        <p>Add your first product to get started</p>
+        <h3>{{ 'admin.noProductsFound' | translate }}</h3>
+        <p>{{ 'admin.addFirstProduct' | translate }}</p>
       </div>
 
       <table *ngIf="products.length > 0" mat-table [dataSource]="products" class="mat-table">
+        <ng-container matColumnDef="productId">
+          <th mat-header-cell *matHeaderCellDef>Product ID</th>
+          <td mat-cell *matCellDef="let product">{{product.productId}}</td>
+        </ng-container>
+
         <ng-container matColumnDef="name">
-          <th mat-header-cell *matHeaderCellDef>Name</th>
+          <th mat-header-cell *matHeaderCellDef>{{ 'admin.name' | translate }}</th>
           <td mat-cell *matCellDef="let product">{{product.name}}</td>
         </ng-container>
 
         <ng-container matColumnDef="description">
-          <th mat-header-cell *matHeaderCellDef>Description</th>
+          <th mat-header-cell *matHeaderCellDef>{{ 'admin.description' | translate }}</th>
           <td mat-cell *matCellDef="let product">{{product.description || 'N/A'}}</td>
         </ng-container>
 
         <ng-container matColumnDef="category">
-          <th mat-header-cell *matHeaderCellDef>Category</th>
+          <th mat-header-cell *matHeaderCellDef>{{ 'admin.category' | translate }}</th>
           <td mat-cell *matCellDef="let product">{{product.category || 'N/A'}}</td>
         </ng-container>
 
@@ -468,15 +406,15 @@
         </ng-container>
 
         <ng-container matColumnDef="actions">
-          <th mat-header-cell *matHeaderCellDef>Actions</th>
+          <th mat-header-cell *matHeaderCellDef>{{ 'common.actions' | translate }}</th>
           <td mat-cell *matCellDef="let product">
             <div class="action-buttons">
               <button class="action-button edit-button" (click)="editProduct(product)">
-                <mat-icon>edit</mat-icon>
-              </button>
+              <mat-icon>edit</mat-icon>
+            </button>
               <button class="action-button delete-button" (click)="deleteProduct(product)">
-                <mat-icon>delete</mat-icon>
-              </button>
+              <mat-icon>delete</mat-icon>
+            </button>
             </div>
           </td>
         </ng-container>
@@ -486,45 +424,45 @@
       </table>
     </div>
 
-    <!-- Speakers Tab -->
     <div *ngIf="activeTab === 'speakers'" class="content-section">
       <div class="section-header">
-        <h2 class="section-title">Speaker Management</h2>
-        <button class="add-button" (click)="openAddSpeakerDialog()">
-          <mat-icon>add</mat-icon>
-          Add Speaker
-        </button>
+        <h2 class="section-title">{{ 'admin.speakerManagement' | translate }}</h2>
       </div>
 
       <div *ngIf="speakers.length === 0" class="empty-state">
         <mat-icon>record_voice_over_outline</mat-icon>
-        <h3>No Speakers Found</h3>
-        <p>Add your first speaker to get started</p>
+        <h3>{{ 'admin.noSpeakersFound' | translate }}</h3>
+        <p>{{ 'admin.addFirstSpeaker' | translate }}</p>
       </div>
 
       <table *ngIf="speakers.length > 0" mat-table [dataSource]="speakers" class="mat-table">
         <ng-container matColumnDef="name">
-          <th mat-header-cell *matHeaderCellDef>Name</th>
+          <th mat-header-cell *matHeaderCellDef>{{ 'admin.name' | translate }}</th>
           <td mat-cell *matCellDef="let speaker">{{speaker.name}}</td>
         </ng-container>
 
         <ng-container matColumnDef="email">
-          <th mat-header-cell *matHeaderCellDef>Email</th>
-          <td mat-cell *matCellDef="let speaker">{{speaker.email}}</td>
+          <th mat-header-cell *matHeaderCellDef>{{ 'admin.email' | translate }}</th>
+          <td mat-cell *matCellDef="let speaker">{{speaker.email || 'N/A'}}</td>
         </ng-container>
 
-        <ng-container matColumnDef="phone">
-          <th mat-header-cell *matHeaderCellDef>Phone</th>
-          <td mat-cell *matCellDef="let speaker">{{speaker.phone || 'N/A'}}</td>
+        <ng-container matColumnDef="bio">
+          <th mat-header-cell *matHeaderCellDef>{{ 'admin.bio' | translate }}</th>
+          <td mat-cell *matCellDef="let speaker">{{speaker.bio || 'N/A'}}</td>
         </ng-container>
 
-        <ng-container matColumnDef="specialization">
-          <th mat-header-cell *matHeaderCellDef>Specialization</th>
-          <td mat-cell *matCellDef="let speaker">{{speaker.specialization || 'N/A'}}</td>
+        <ng-container matColumnDef="expertise">
+          <th mat-header-cell *matHeaderCellDef>{{ 'admin.expertise' | translate }}</th>
+          <td mat-cell *matCellDef="let speaker">{{speaker.expertise || 'N/A'}}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="organization">
+          <th mat-header-cell *matHeaderCellDef>{{ 'admin.organization' | translate }}</th>
+          <td mat-cell *matCellDef="let speaker">{{speaker.organization || 'N/A'}}</td>
         </ng-container>
 
         <ng-container matColumnDef="actions">
-          <th mat-header-cell *matHeaderCellDef>Actions</th>
+          <th mat-header-cell *matHeaderCellDef>{{ 'common.actions' | translate }}</th>
           <td mat-cell *matCellDef="let speaker">
             <div class="action-buttons">
               <button class="action-button edit-button" (click)="editSpeaker(speaker)">
@@ -542,55 +480,54 @@
       </table>
     </div>
 
-    <!-- Conferences Tab -->
     <div *ngIf="activeTab === 'conferences'" class="content-section">
       <div class="section-header">
-        <h2 class="section-title">Conference Management</h2>
+        <h2 class="section-title">{{ 'admin.conferenceManagement' | translate }}</h2>
         <button class="add-button" (click)="openAddConferenceDialog()">
           <mat-icon>add</mat-icon>
-          Add Conference
+          {{ 'admin.addConference' | translate }}
         </button>
       </div>
 
       <div *ngIf="conferences.length === 0" class="empty-state">
         <mat-icon>event_outline</mat-icon>
-        <h3>No Conferences Found</h3>
-        <p>Add your first conference to get started</p>
+        <h3>{{ 'admin.noConferencesFound' | translate }}</h3>
+        <p>{{ 'admin.addFirstConference' | translate }}</p>
       </div>
 
       <table *ngIf="conferences.length > 0" mat-table [dataSource]="conferences" class="mat-table">
         <ng-container matColumnDef="title">
-          <th mat-header-cell *matHeaderCellDef>Title</th>
+          <th mat-header-cell *matHeaderCellDef>{{ 'admin.title' | translate }}</th>
           <td mat-cell *matCellDef="let conference">{{conference.title}}</td>
         </ng-container>
 
         <ng-container matColumnDef="description">
-          <th mat-header-cell *matHeaderCellDef>Description</th>
+          <th mat-header-cell *matHeaderCellDef>{{ 'admin.description' | translate }}</th>
           <td mat-cell *matCellDef="let conference">{{conference.description || 'N/A'}}</td>
         </ng-container>
 
         <ng-container matColumnDef="date">
-          <th mat-header-cell *matHeaderCellDef>Date</th>
+          <th mat-header-cell *matHeaderCellDef>{{ 'admin.date' | translate }}</th>
           <td mat-cell *matCellDef="let conference">{{conference.date || 'N/A'}}</td>
         </ng-container>
 
         <ng-container matColumnDef="time">
-          <th mat-header-cell *matHeaderCellDef>Time</th>
+          <th mat-header-cell *matHeaderCellDef>{{ 'admin.time' | translate }}</th>
           <td mat-cell *matCellDef="let conference">{{conference.time || 'N/A'}}</td>
         </ng-container>
 
-        <ng-container matColumnDef="location">
-          <th mat-header-cell *matHeaderCellDef>Location</th>
-          <td mat-cell *matCellDef="let conference">{{conference.location || 'N/A'}}</td>
+        <ng-container matColumnDef="speaker">
+          <th mat-header-cell *matHeaderCellDef>{{ 'admin.speaker' | translate }}</th>
+          <td mat-cell *matCellDef="let conference">{{conference.speaker || 'NaN'}}</td>
         </ng-container>
 
-        <ng-container matColumnDef="speaker">
-          <th mat-header-cell *matHeaderCellDef>Speaker</th>
-          <td mat-cell *matCellDef="let conference">{{conference.speaker || 'N/A'}}</td>
+        <ng-container matColumnDef="floorNumber">
+          <th mat-header-cell *matHeaderCellDef>{{ 'admin.floor' | translate }}</th>
+          <td mat-cell *matCellDef="let conference">{{conference.floorNumber || 'N/A'}}</td>
         </ng-container>
 
         <ng-container matColumnDef="actions">
-          <th mat-header-cell *matHeaderCellDef>Actions</th>
+          <th mat-header-cell *matHeaderCellDef>{{ 'common.actions' | translate }}</th>
           <td mat-cell *matCellDef="let conference">
             <div class="action-buttons">
               <button class="action-button edit-button" (click)="editConference(conference)">
@@ -608,7 +545,6 @@
       </table>
     </div>
 
-    <!-- Database Tab -->
     <div *ngIf="activeTab === 'database'" class="content-section">
       <app-database-management></app-database-management>
     </div>

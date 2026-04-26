@@ -1,0 +1,58 @@
+<div class="image-upload-container">
+  <label class="upload-label">{{ label }}</label>
+  
+  <div class="image-preview-container">
+    <div *ngIf="getDisplayImage(); else noImageTemplate" class="image-preview">
+      <img [src]="getDisplayImage()" [alt]="label" class="preview-image">
+      <button 
+        *ngIf="uploadedUrl || selectedFile"
+        mat-icon-button 
+        class="remove-button"
+        (click)="removeImage()"
+        type="button"
+        title="Remove image">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+    
+    <ng-template #noImageTemplate>
+      <div class="no-image-placeholder">
+        <mat-icon class="placeholder-icon">image</mat-icon>
+        <p>No image selected</p>
+      </div>
+    </ng-template>
+  </div>
+
+  <div class="upload-controls">
+    <input 
+      type="file"
+      [id]="'file-input-' + category"
+      accept="image/*"
+      (change)="onFileSelected($event)"
+      style="display: none;">
+    
+    <button 
+      mat-raised-button 
+      color="primary"
+      (click)="onBrowseClick()"
+      [disabled]="uploading"
+      type="button">
+      <mat-icon>folder_open</mat-icon>
+      Browse
+    </button>
+  </div>
+
+  <div *ngIf="uploading" class="upload-status">
+    <mat-spinner diameter="20"></mat-spinner>
+    <span>Uploading...</span>
+  </div>
+
+  <div *ngIf="uploadError" class="error-message">
+    <mat-icon class="error-icon">error</mat-icon>
+    <span>{{ uploadError }}</span>
+  </div>
+</div>
+
+
+
+

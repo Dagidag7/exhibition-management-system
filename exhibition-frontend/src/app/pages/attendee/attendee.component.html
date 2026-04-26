@@ -1,0 +1,371 @@
+<div class="attendee-dashboard">
+  <!-- Header Section -->
+  <div class="header-section">
+    <mat-card class="welcome-card">
+      <mat-card-header>
+        <div mat-card-avatar class="user-avatar">
+          <img 
+            *ngIf="currentAttendee?.profilePhoto" 
+            [src]="currentAttendee!.profilePhoto!" 
+            alt="Profile Photo" 
+            class="profile-photo-avatar"
+            (error)="onProfilePhotoError()">
+          <mat-icon *ngIf="!currentAttendee?.profilePhoto">person</mat-icon>
+        </div>
+        <mat-card-title>{{ 'attendee.welcome' | translate }}, {{ currentUser?.name || 'Attendee' }}!</mat-card-title>
+        <mat-card-subtitle>{{ 'attendee.explore' | translate }} {{ 'common.exhibitors' | translate }}</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <p>{{ 'welcome.subtitle' | translate }}</p>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <mat-tab-group 
+    [(selectedIndex)]="activeTab" 
+    (selectedIndexChange)="setActiveTab($event)"
+    class="dashboard-tabs">
+    
+    <mat-tab [label]="'attendee.explore' | translate">
+      <div class="tab-content">
+        <!-- Statistics Cards -->
+        <div class="stats-section">
+          <mat-card class="stat-card">
+            <mat-card-content>
+              <div class="stat-content">
+                <mat-icon class="stat-icon">business</mat-icon>
+                <div class="stat-info">
+                  <h3>{{ stats.totalExhibitors }}</h3>
+                  <p>{{ 'attendee.totalExhibitors' | translate }}</p>
+                </div>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <mat-card class="stat-card">
+            <mat-card-content>
+              <div class="stat-content">
+                <mat-icon class="stat-icon">star</mat-icon>
+                <div class="stat-info">
+                  <h3>{{ stats.totalSponsors }}</h3>
+                  <p>{{ 'attendee.totalSponsors' | translate }}</p>
+                </div>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <mat-card class="stat-card">
+            <mat-card-content>
+              <div class="stat-content">
+                <mat-icon class="stat-icon">handshake</mat-icon>
+                <div class="stat-info">
+                  <h3>{{ stats.totalPartners }}</h3>
+                  <p>{{ 'attendee.totalPartners' | translate }}</p>
+                </div>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+
+        <!-- Loading Indicator -->
+        <div *ngIf="loading" class="loading-section">
+          <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+          <p>Loading exhibitors...</p>
+        </div>
+
+        <!-- Search Bar -->
+        <div *ngIf="!loading" class="search-section">
+          <mat-form-field appearance="outline" class="search-field">
+            <mat-label>{{ 'common.searchExhibition' | translate }}</mat-label>
+            <input 
+              matInput 
+              [(ngModel)]="searchQuery" 
+              (input)="onSearchChange()"
+              [placeholder]="'common.searchPlaceholder' | translate">
+            <mat-icon matPrefix>search</mat-icon>
+            <button 
+              mat-icon-button 
+              matSuffix 
+              *ngIf="searchQuery" 
+              (click)="searchQuery = ''; onSearchChange()"
+              aria-label="Clear search">
+              <mat-icon>clear</mat-icon>
+            </button>
+          </mat-form-field>
+        </div>
+
+        <!-- Exhibitors by Floor -->
+        <div *ngIf="!loading && (!hasSearchResults() || hasExhibitorResults())" class="exhibitors-section">
+          <h2>{{ 'attendee.exhibitorsByFloor' | translate }}</h2>
+          
+          <div *ngIf="hasSearchResults() && filteredExhibitors.length === 0" class="no-items">
+            <mat-icon>search_off</mat-icon>
+            <p>No exhibitors found matching "{{ searchQuery }}"</p>
+          </div>
+          
+          <div *ngIf="!hasSearchResults() && getUniqueFloors(filteredExhibitors).length === 0" class="no-items">
+            <mat-icon>info</mat-icon>
+            <p>No exhibitors available at the moment.</p>
+          </div>
+
+          <div *ngFor="let floor of getUniqueFloors(filteredExhibitors)" class="floor-section">
+            <div class="floor-header">
+              <h3>
+                <mat-icon>layers</mat-icon>
+                {{ 'common.floor' | translate }} {{ floor }}
+                <span class="floor-count">({{ getFloorExhibitors(floor, filteredExhibitors).length }} {{ 'attendee.exhibitor' | translate }})</span>
+              </h3>
+            </div>
+            
+            <div class="exhibitors-grid">
+              <mat-card *ngFor="let exhibitor of getFloorExhibitors(floor, filteredExhibitors)" 
+                       class="exhibitor-card">
+                <div class="exhibitor-card-header-custom">
+                  <mat-card-title class="exhibitor-card-title">{{ exhibitor.companyName }}</mat-card-title>
+                  <div class="exhibitor-logo-wrapper">
+                    <div class="exhibitor-logo-container" *ngIf="hasValidLogo(exhibitor)">
+                      <img [src]="exhibitor.logoUrl" 
+                           [alt]="exhibitor.companyName" 
+                           class="exhibitor-logo" 
+                           (error)="onLogoError($event, exhibitor)"
+                           (load)="onLogoLoad($event, exhibitor)">
+                    </div>
+                    <div class="exhibitor-logo-placeholder" *ngIf="!hasValidLogo(exhibitor)">
+                      <mat-icon>business</mat-icon>
+                    </div>
+                  </div>
+                </div>
+                
+                <mat-card-content>
+                  <div class="exhibitor-info">
+                    <div class="info-item">
+                      <mat-icon>store</mat-icon>
+                        <span>{{ 'common.booth' | translate }} {{ exhibitor.boothNumber }}</span>
+                    </div>
+                    
+                    <div class="info-item">
+                      <mat-icon>layers</mat-icon>
+                        <span>{{ 'common.floor' | translate }} {{ exhibitor.floorNumber }}</span>
+                    </div>
+                  </div>
+
+                  <!-- Products Section -->
+                  <div class="products-section">
+                    <button 
+                      mat-button 
+                      color="primary" 
+                      (click)="toggleExhibitorProducts(exhibitor.exhibitorId)"
+                      class="products-toggle-btn">
+                      <mat-icon>{{ isExhibitorExpanded(exhibitor.exhibitorId) ? 'expand_less' : 'expand_more' }}</mat-icon>
+                      <span>{{ isExhibitorExpanded(exhibitor.exhibitorId) ? ('attendee.hideProducts' | translate) : ('attendee.viewProducts' | translate) }}</span>
+                      <span class="product-count" *ngIf="getExhibitorProducts(exhibitor.exhibitorId).length > 0">
+                        ({{ getExhibitorProducts(exhibitor.exhibitorId).length }})
+                      </span>
+                    </button>
+
+                    <div *ngIf="isExhibitorExpanded(exhibitor.exhibitorId)" class="products-list">
+                      <div *ngIf="isLoadingProducts(exhibitor.exhibitorId)" class="loading-products">
+                        <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+                        <p>{{ 'attendee.loadingProducts' | translate }}</p>
+                      </div>
+                      
+                      <div *ngIf="!isLoadingProducts(exhibitor.exhibitorId) && getExhibitorProducts(exhibitor.exhibitorId).length === 0" 
+                           class="no-products">
+                        <mat-icon>inventory_2</mat-icon>
+                        <p>{{ 'attendee.noProducts' | translate }}</p>
+                      </div>
+
+                      <div *ngIf="!isLoadingProducts(exhibitor.exhibitorId) && getExhibitorProducts(exhibitor.exhibitorId).length > 0" 
+                           class="products-grid">
+                        <div *ngFor="let product of getExhibitorProducts(exhibitor.exhibitorId)" 
+                             class="product-item">
+                          <img *ngIf="product.imageUrl" 
+                               [src]="product.imageUrl" 
+                               [alt]="product.name" 
+                               class="product-image"
+                               (error)="$event.target.style.display='none'">
+                          <div class="product-details">
+                            <div class="product-name">{{ product.name }}</div>
+                            <div class="product-category" *ngIf="product.category">{{ product.category }}</div>
+                            <div class="product-description" *ngIf="product.description">{{ product.description }}</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </mat-card-content>
+              </mat-card>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sponsors Section -->
+        <div class="sponsors-section" *ngIf="!loadingSponsors && (!hasSearchResults() || hasSponsorResults())">
+          <h2>{{ 'attendee.ourSponsors' | translate }}</h2>
+          
+          <div *ngIf="hasSearchResults() && filteredSponsors.length === 0" class="no-items">
+            <mat-icon>search_off</mat-icon>
+            <p>No sponsors found matching "{{ searchQuery }}"</p>
+          </div>
+
+          <div *ngIf="!hasSearchResults() && filteredSponsors.length === 0" class="no-items">
+            <mat-icon>info</mat-icon>
+            <p>No sponsors available at the moment.</p>
+          </div>
+
+          <div *ngIf="filteredSponsors.length > 0" class="sponsors-grid">
+            <mat-card *ngFor="let sponsor of filteredSponsors" class="sponsor-card">
+              <div class="sponsor-card-header-custom">
+                <mat-card-title class="sponsor-card-title">{{ sponsor.name }}</mat-card-title>
+                <div class="sponsor-logo-wrapper">
+                  <div class="sponsor-logo-container" *ngIf="hasValidSponsorLogo(sponsor)">
+                    <img [src]="sponsor.logoUrl" 
+                         [alt]="sponsor.name" 
+                         class="sponsor-logo" 
+                         (error)="onSponsorLogoError($event, sponsor)"
+                         (load)="onSponsorLogoLoad($event, sponsor)">
+                  </div>
+                  <div class="sponsor-logo-placeholder" *ngIf="!hasValidSponsorLogo(sponsor)">
+                    <mat-icon>star</mat-icon>
+                  </div>
+                </div>
+              </div>
+              <mat-card-content *ngIf="sponsor.benefits">
+                <p class="sponsor-benefits">{{ sponsor.benefits }}</p>
+              </mat-card-content>
+            </mat-card>
+          </div>
+        </div>
+
+        <!-- Partners Section -->
+        <div class="partners-section" *ngIf="!loadingPartners && (!hasSearchResults() || hasPartnerResults())">
+          <h2>{{ 'attendee.ourPartners' | translate }}</h2>
+          
+          <div *ngIf="hasSearchResults() && filteredPartners.length === 0" class="no-items">
+            <mat-icon>search_off</mat-icon>
+            <p>No partners found matching "{{ searchQuery }}"</p>
+          </div>
+
+          <div *ngIf="!hasSearchResults() && filteredPartners.length === 0" class="no-items">
+            <mat-icon>info</mat-icon>
+            <p>No partners available at the moment.</p>
+          </div>
+
+          <div *ngIf="filteredPartners.length > 0" class="partners-grid">
+            <mat-card *ngFor="let partner of filteredPartners" class="partner-card">
+              <mat-card-header>
+                <mat-card-title>{{ partner.name }}</mat-card-title>
+                <div class="logo-spacer"></div>
+                <div class="partner-logo-placeholder">
+                  <mat-icon>handshake</mat-icon>
+                </div>
+                <mat-card-subtitle *ngIf="partner.partnershipType">
+                  {{ partner.partnershipType }}
+                </mat-card-subtitle>
+              </mat-card-header>
+              <mat-card-content *ngIf="partner.benefits">
+                <p class="partner-benefits">{{ partner.benefits }}</p>
+              </mat-card-content>
+            </mat-card>
+          </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="actions-section">
+          <mat-card class="actions-card">
+            <mat-card-header>
+              <mat-card-title>{{ 'attendee.quickActions' | translate }}</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              <div class="action-buttons">
+                <button mat-raised-button color="primary" (click)="loadExhibitors()">
+                  <mat-icon>refresh</mat-icon>
+                  {{ 'common.refresh' | translate }}
+                </button>
+                
+                <button mat-raised-button color="accent" (click)="logout()">
+                  <mat-icon>logout</mat-icon>
+                  {{ 'common.logout' | translate }}
+                </button>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+      </div>
+    </mat-tab>
+
+    <mat-tab [label]="'attendee.profile' | translate">
+      <div class="tab-content">
+        <div class="content-header">
+          <h2>{{ 'attendee.profile' | translate }}</h2>
+          <div class="profile-actions">
+            <button mat-raised-button color="primary" (click)="openChangePasswordDialog()">
+              <mat-icon>lock</mat-icon>
+              {{ 'profile.changePassword' | translate }}
+            </button>
+            <button mat-raised-button color="accent" (click)="openEditProfile()">
+              <mat-icon>edit</mat-icon>
+              {{ 'profile.editProfile' | translate }}
+            </button>
+          </div>
+        </div>
+
+        <div class="profile-section" *ngIf="currentAttendee">
+          <mat-card class="profile-card">
+            <mat-card-header>
+              <mat-card-title>{{ 'profile.personalInfo' | translate }}</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              <div class="profile-info">
+                <div class="info-row">
+                  <span class="label">{{ 'profile.fullName' | translate }}:</span>
+                  <span class="value">{{ currentAttendee.name }}</span>
+                </div>
+                <div class="info-row">
+                  <span class="label">{{ 'profile.email' | translate }}:</span>
+                  <span class="value">{{ currentAttendee.email }}</span>
+                </div>
+                <div class="info-row">
+                  <span class="label">{{ 'profile.phone' | translate }}:</span>
+                  <span class="value">{{ currentAttendee.phone || ('profile.notProvided' | translate) }}</span>
+                </div>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <mat-card class="profile-card">
+            <mat-card-header>
+              <mat-card-title>{{ 'profile.paymentInformation' | translate }}</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              <div class="profile-info">
+                <div class="info-row">
+                  <span class="label">{{ 'profile.paymentFee' | translate }}:</span>
+                  <span class="value">
+                    <mat-icon class="currency-icon">attach_money</mat-icon>
+                    ${{ getPaymentFee() | number:'1.2-2' }}
+                  </span>
+                </div>
+                <div class="info-row" *ngIf="getPaymentFee() === 0">
+                  <span class="hint">{{ 'profile.noPaymentInfo' | translate }}</span>
+                </div>
+                <div class="info-row" *ngIf="getPaymentFee() > 0">
+                  <button mat-raised-button color="primary" (click)="downloadReceipt()">
+                    <mat-icon>download</mat-icon>
+                    Download Registration Receipt
+                  </button>
+                </div>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+
+        <div *ngIf="!currentAttendee" class="loading-section">
+          <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+          <p>{{ 'profile.loadingProfile' | translate }}</p>
+        </div>
+      </div>
+    </mat-tab>
+  </mat-tab-group>
+</div>
+

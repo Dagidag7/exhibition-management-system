@@ -1,6 +1,8 @@
 .partner-form-container {
   padding: 20px;
   max-width: 500px;
+  max-height: 70vh;
+  overflow-y: auto;
 }
 
 .partner-form-container h2 {

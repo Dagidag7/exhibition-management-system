@@ -6,7 +6,7 @@ public class Conference {
     private String description;
     private String date;
     private String time;
-    private String location;
+    private String floorNumber;
     private String speaker;
 
     // Default constructor
@@ -14,13 +14,13 @@ public class Conference {
 
     // Constructor with all fields
     public Conference(int conferenceId, String title, String description, 
-    String date, String time, String location, String speaker) {
+    String date, String time, String floorNumber, String speaker) {
         this.conferenceId = conferenceId;
         this.title = title;
         this.description = description;
         this.date = date;
         this.time = time;
-        this.location = location;
+        this.floorNumber = floorNumber;
         this.speaker = speaker;
     }
 
@@ -65,12 +65,12 @@ public class Conference {
         this.time = time;
     }
 
-    public String getLocation() {
-        return location;
+    public String getFloorNumber() {
+        return floorNumber;
     }
 
-    public void setLocation(String location) {
-        this.location = location;
+    public void setFloorNumber(String floorNumber) {
+        this.floorNumber = floorNumber;
     }
 
     public String getSpeaker() {
@@ -89,7 +89,7 @@ public class Conference {
                 ", description='" + description + '\'' +
                 ", date='" + date + '\'' +
                 ", time='" + time + '\'' +
-                ", location='" + location + '\'' +
+                ", floorNumber='" + floorNumber + '\'' +
                 ", speaker='" + speaker + '\'' +
                 '}';
     }

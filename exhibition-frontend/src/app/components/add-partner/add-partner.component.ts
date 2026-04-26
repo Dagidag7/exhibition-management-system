@@ -7,6 +7,8 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Partner, PartnerService } from '../../services/partner.service';
+import { ValidationService } from '../../services/validation.service';
+import { TranslatePipe } from '../../pipes/translate.pipe';
 
 @Component({
   selector: 'app-add-partner',
@@ -17,7 +19,8 @@ import { Partner, PartnerService } from '../../services/partner.service';
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule,
-    MatDialogModule
+    MatDialogModule,
+    TranslatePipe
   ],
   templateUrl: './add-partner.component.html',
   styleUrls: ['./add-partner.component.css']
@@ -31,12 +34,14 @@ export class AddPartnerComponent implements OnInit {
     private fb: FormBuilder,
     private dialogRef: MatDialogRef<AddPartnerComponent>,
     private partnerService: PartnerService,
+    private validationService: ValidationService,
     private snackBar: MatSnackBar,
     @Inject(MAT_DIALOG_DATA) public data: { partner?: Partner }
   ) {
     this.partnerForm = this.fb.group({
       name: ['', [Validators.required, Validators.maxLength(100)]],
       contactPerson: ['', [Validators.required, Validators.maxLength(100)]],
+      email: ['', [Validators.email, Validators.maxLength(100)]],
       partnershipType: ['', [Validators.required, Validators.maxLength(100)]],
       benefits: ['']
     });
@@ -56,7 +61,7 @@ export class AddPartnerComponent implements OnInit {
   }
 
   onSubmit() {
-    if (this.partnerForm.valid) {
+    if (this.validateForm()) {
       const formValue = this.partnerForm.value;
       
       if (this.isEditMode && this.partnerId) {
@@ -65,6 +70,7 @@ export class AddPartnerComponent implements OnInit {
           partnerId: this.partnerId,
           name: formValue.name,
           contactPerson: formValue.contactPerson,
+          email: formValue.email,
           partnershipType: formValue.partnershipType,
           benefits: formValue.benefits
         };
@@ -91,6 +97,7 @@ export class AddPartnerComponent implements OnInit {
         const partner: Omit<Partner, 'partnerId'> = {
           name: formValue.name,
           contactPerson: formValue.contactPerson,
+          email: formValue.email,
           partnershipType: formValue.partnershipType,
           benefits: formValue.benefits
         };
@@ -114,6 +121,45 @@ export class AddPartnerComponent implements OnInit {
         });
       }
     }
+  }
+
+  validateForm(): boolean {
+    const formValue = this.partnerForm.value;
+
+    // Validate partner name
+    const nameValidation = this.validationService.validateCompanyName(formValue.name);
+    if (!nameValidation.isValid) {
+      this.snackBar.open('Partner Name: ' + nameValidation.message, 'Close', {
+        duration: 4000,
+        horizontalPosition: 'center',
+        verticalPosition: 'top'
+      });
+      return false;
+    }
+
+    // Validate contact person name
+    const contactPersonValidation = this.validationService.validateName(formValue.contactPerson);
+    if (!contactPersonValidation.isValid) {
+      this.snackBar.open('Contact Person: ' + contactPersonValidation.message, 'Close', {
+        duration: 4000,
+        horizontalPosition: 'center',
+        verticalPosition: 'top'
+      });
+      return false;
+    }
+
+    // Validate partnership type
+    const partnershipTypeValidation = this.validationService.validateCompanyName(formValue.partnershipType);
+    if (!partnershipTypeValidation.isValid) {
+      this.snackBar.open('Partnership Type: ' + partnershipTypeValidation.message, 'Close', {
+        duration: 4000,
+        horizontalPosition: 'center',
+        verticalPosition: 'top'
+      });
+      return false;
+    }
+
+    return true;
   }
 
   onCancel() {

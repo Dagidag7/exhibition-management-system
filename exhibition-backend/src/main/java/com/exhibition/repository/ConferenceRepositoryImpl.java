@@ -25,14 +25,14 @@ public class ConferenceRepositoryImpl implements ConferenceRepository {
     public void addConference(Conference conference, Handler<AsyncResult<Integer>> resultHandler) {
         MainVerticle.vertx.executeBlocking(promise -> {
             try {
-                String sql = "INSERT INTO conference (title, description, date, time, location, speaker) VALUES (?, ?, ?, ?, ?, ?)";
-                JsonArray params = new JsonArray()
-                    .add(conference.getTitle())
-                    .add(conference.getDescription())
-                    .add(conference.getDate())
-                    .add(conference.getTime())
-                    .add(conference.getLocation())
-                    .add(conference.getSpeaker());
+                    String sql = "INSERT INTO conference (title, description, date, time, floor_number, speaker) VALUES (?, ?, ?, ?, ?, ?)";
+                    JsonArray params = new JsonArray()
+                        .add(conference.getTitle())
+                        .add(conference.getDescription())
+                        .add(conference.getDate())
+                        .add(conference.getTime())
+                        .add(conference.getFloorNumber())
+                        .add(conference.getSpeaker());
 
                 jdbcClient.updateWithParams(sql, params, res -> {
                     if (res.succeeded()) {
@@ -52,7 +52,7 @@ public class ConferenceRepositoryImpl implements ConferenceRepository {
     public void getAllConferences(Handler<AsyncResult<List<Conference>>> resultHandler) {
         MainVerticle.vertx.executeBlocking(promise -> {
             try {
-                String sql = "SELECT * FROM conference ORDER BY date, time";
+                    String sql = "SELECT conference_id, title, description, date, time, floor_number, speaker FROM conference ORDER BY date, time";
                 jdbcClient.query(sql, res -> {
                     if (res.succeeded()) {
                         ResultSet resultSet = res.result();
@@ -78,7 +78,7 @@ public class ConferenceRepositoryImpl implements ConferenceRepository {
     public void getConference(int id, Handler<AsyncResult<Conference>> resultHandler) {
         MainVerticle.vertx.executeBlocking(promise -> {
             try {
-                String sql = "SELECT * FROM conference WHERE conference_id = ?";
+                    String sql = "SELECT conference_id, title, description, date, time, floor_number, speaker FROM conference WHERE conference_id = ?";
                 JsonArray params = new JsonArray().add(id);
                 
                 jdbcClient.queryWithParams(sql, params, res -> {
@@ -104,15 +104,15 @@ public class ConferenceRepositoryImpl implements ConferenceRepository {
     public void updateConference(Conference conference, Handler<AsyncResult<Void>> resultHandler) {
         MainVerticle.vertx.executeBlocking(promise -> {
             try {
-                String sql = "UPDATE conference SET title = ?, description = ?, date = ?, time = ?, location = ?, speaker = ? WHERE conference_id = ?";
-                JsonArray params = new JsonArray()
-                    .add(conference.getTitle())
-                    .add(conference.getDescription())
-                    .add(conference.getDate())
-                    .add(conference.getTime())
-                    .add(conference.getLocation())
-                    .add(conference.getSpeaker())
-                    .add(conference.getConferenceId());
+                    String sql = "UPDATE conference SET title = ?, description = ?, date = ?, time = ?, floor_number = ?, speaker = ? WHERE conference_id = ?";
+                    JsonArray params = new JsonArray()
+                        .add(conference.getTitle())
+                        .add(conference.getDescription())
+                        .add(conference.getDate())
+                        .add(conference.getTime())
+                        .add(conference.getFloorNumber())
+                        .add(conference.getSpeaker())
+                        .add(conference.getConferenceId());
 
                 jdbcClient.updateWithParams(sql, params, res -> {
                     if (res.succeeded()) {
@@ -154,8 +154,67 @@ public class ConferenceRepositoryImpl implements ConferenceRepository {
         conference.setDescription(row.getString(2));
         conference.setDate(row.getString(3));
         conference.setTime(row.getString(4));
-        conference.setLocation(row.getString(5));
+        conference.setFloorNumber(row.getString(5));
         conference.setSpeaker(row.getString(6));
         return conference;
+    }
+    
+    public void isFloorConferenceTaken(String floorNumber, Integer excludeConferenceId, Handler<AsyncResult<Boolean>> resultHandler) {
+        // Normalize floor number for comparison (remove spaces, convert to lowercase)
+        String normalizedFloorNumber = floorNumber == null ? null : floorNumber.trim().toLowerCase().replaceAll("\\s+", "");
+        
+        String sql = excludeConferenceId == null
+            ? "SELECT 1 FROM conference WHERE LOWER(REPLACE(REPLACE(floor_number, ' ', ''), '\t', '')) = ? LIMIT 1"
+            : "SELECT 1 FROM conference WHERE LOWER(REPLACE(REPLACE(floor_number, ' ', ''), '\t', '')) = ? AND conference_id <> ? LIMIT 1";
+
+        JsonArray params = excludeConferenceId == null
+            ? new JsonArray().add(normalizedFloorNumber)
+            : new JsonArray().add(normalizedFloorNumber).add(excludeConferenceId);
+
+        jdbcClient.queryWithParams(sql, params, res -> {
+            if (res.succeeded()) {
+                boolean taken = res.result().getNumRows() > 0;
+                resultHandler.handle(io.vertx.core.Future.succeededFuture(taken));
+            } else {
+                resultHandler.handle(io.vertx.core.Future.failedFuture(res.cause()));
+            }
+        });
+    }
+    
+    public void isSpeakerAssignedToConference(String speakerName, Integer excludeConferenceId, Handler<AsyncResult<Boolean>> resultHandler) {
+        String sql = excludeConferenceId == null
+            ? "SELECT 1 FROM conference WHERE speaker = ? LIMIT 1"
+            : "SELECT 1 FROM conference WHERE speaker = ? AND conference_id <> ? LIMIT 1";
+
+        JsonArray params = excludeConferenceId == null
+            ? new JsonArray().add(speakerName == null ? null : speakerName.trim())
+            : new JsonArray().add(speakerName == null ? null : speakerName.trim())
+                             .add(excludeConferenceId);
+
+        jdbcClient.queryWithParams(sql, params, res -> {
+            if (res.succeeded()) {
+                boolean assigned = res.result().getNumRows() > 0;
+                resultHandler.handle(io.vertx.core.Future.succeededFuture(assigned));
+            } else {
+                resultHandler.handle(io.vertx.core.Future.failedFuture(res.cause()));
+            }
+        });
+    }
+
+    @Override
+    public void clearSpeakerFromConferences(String speakerName, Handler<AsyncResult<Void>> resultHandler) {
+        if (speakerName == null || speakerName.trim().isEmpty()) {
+            resultHandler.handle(io.vertx.core.Future.succeededFuture());
+            return;
+        }
+        String sql = "UPDATE conference SET speaker = NULL WHERE TRIM(COALESCE(speaker, '')) = ?";
+        JsonArray params = new JsonArray().add(speakerName.trim());
+        jdbcClient.updateWithParams(sql, params, res -> {
+            if (res.succeeded()) {
+                resultHandler.handle(io.vertx.core.Future.succeededFuture());
+            } else {
+                resultHandler.handle(io.vertx.core.Future.failedFuture(res.cause()));
+            }
+        });
     }
 }

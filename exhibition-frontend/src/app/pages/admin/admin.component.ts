@@ -16,6 +16,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { Router } from '@angular/router';
+import { forkJoin } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
 import { AttendeeService } from '../../services/attendee.service';
 import { ExhibitorService, Exhibitor } from '../../services/exhibitor.service';
@@ -27,13 +28,12 @@ import { SpeakerService, Speaker } from '../../services/speaker.service';
 import { AddSpeakerComponent } from '../../components/add-speaker/add-speaker.component';
 import { PartnerService, Partner } from '../../services/partner.service';
 import { AddPartnerComponent } from '../../components/add-partner/add-partner.component';
-import { FloorService, Floor } from '../../services/floor.service';
-import { AddFloorComponent } from '../../components/add-floor/add-floor.component';
 import { SponsorService, Sponsor } from '../../services/sponsor.service';
 import { AddSponsorComponent } from '../../components/add-sponsor/add-sponsor.component';
 import { EditExhibitorComponent } from '../../components/edit-exhibitor/edit-exhibitor.component';
 import { AddProductComponent } from '../../components/add-product/add-product.component';
 import { DatabaseManagementComponent } from '../../components/database-management/database-management.component';
+import { TranslatePipe } from '../../pipes/translate.pipe';
 
 
 interface UserWithStatus {
@@ -65,8 +65,8 @@ interface UserWithStatus {
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
-    DatabaseManagementComponent
-    // AddExhibitorComponent
+    DatabaseManagementComponent,
+    TranslatePipe
   ],
   templateUrl: './admin.component.html',
   styleUrls: ['./admin.component.css']
@@ -75,15 +75,14 @@ export class AdminComponent implements OnInit {
   currentUser: any;
   activeTab: string = 'dashboard';
   dashboardStats = {
-    totalAttendees: 0,
+    totalUsers: 0,
     totalExhibitors: 0,
+    totalAttendees: 0,
     totalProducts: 0,
     totalConferences: 0,
     totalSpeakers: 0,
-    totalSponsors: 0,
     totalPartners: 0,
-    totalFloors: 0,
-    activeUsers: 0
+    totalSponsors: 0
   };
   
   attendees: UserWithStatus[] = [];
@@ -92,26 +91,23 @@ export class AdminComponent implements OnInit {
   conferences: Conference[] = [];
   speakers: Speaker[] = [];
   partners: Partner[] = [];
-  floors: Floor[] = [];
   sponsors: Sponsor[] = [];
   
-  // Update displayed columns to match HTML template
-  attendeeDisplayedColumns = ['name', 'email', 'phone', 'registrationDate', 'status', 'actions'];
-  exhibitorDisplayedColumns = ['name', 'email', 'boothNumber', 'floorNumber', 'status', 'actions'];
-  productDisplayedColumns = ['name', 'description', 'category', 'exhibitorId', 'actions'];
-  speakerDisplayedColumns = ['name', 'email', 'phone', 'specialization', 'actions'];
-  conferenceDisplayedColumns = ['title', 'description', 'date', 'time', 'location', 'speaker', 'actions'];
-  partnerDisplayedColumns = ['name', 'contactPerson', 'partnershipType', 'benefits', 'actions'];
-  floorDisplayedColumns = ['floorNumber', 'layoutImage', 'exhibitorIds', 'conferenceIds', 'actions'];
-  sponsorDisplayedColumns = ['name', 'contactPerson', 'contributionAmount', 'benefits', 'actions'];
+  attendeeDisplayedColumns = ['name', 'email', 'phone', 'status'];
+  exhibitorDisplayedColumns = ['companyName', 'email', 'contactPerson', 'boothNumber', 'floorNumber', 'status', 'productIds', 'actions'];
+  productDisplayedColumns = ['productId', 'name', 'description', 'category', 'exhibitorId', 'actions'];
+  speakerDisplayedColumns = ['name', 'email', 'bio', 'expertise', 'organization', 'actions'];
+  conferenceDisplayedColumns = ['title', 'description', 'date', 'time', 'floorNumber', 'speaker', 'actions'];
+  partnerDisplayedColumns = ['name', 'contactPerson', 'email', 'partnershipType', 'benefits', 'actions'];
+  sponsorDisplayedColumns = ['name', 'contactPerson', 'email', 'contributionAmount', 'benefits', 'actions'];
 
-  // Database Management
   databaseOperations = [
-    { id: 'update_conference_schema', name: 'Update Conference Schema', description: 'Update conference table to new structure', status: 'pending' },
-    { id: 'insert_sample_conferences', name: 'Insert Sample Conferences', description: 'Add sample conference data', status: 'pending' },
-    { id: 'check_database_status', name: 'Check Database Status', description: 'Verify database connectivity and tables', status: 'pending' }
+    { operation: 'Backup Database', description: 'Create a backup of the current database', status: 'Available' },
+    { operation: 'Restore Database', description: 'Restore database from a backup file', status: 'Available' },
+    { operation: 'Optimize Tables', description: 'Optimize database tables for better performance', status: 'Available' },
+    { operation: 'Check Database Health', description: 'Run diagnostics on database health', status: 'Available' }
   ];
-
+  
   displayedColumnsDatabase = ['operation', 'description', 'status', 'actions'];
 
   constructor(
@@ -122,7 +118,6 @@ export class AdminComponent implements OnInit {
     private conferenceService: ConferenceService,
     private speakerService: SpeakerService,
     private partnerService: PartnerService,
-    private floorService: FloorService,
     private sponsorService: SponsorService,
     private dialog: MatDialog,
     private snackBar: MatSnackBar,
@@ -154,7 +149,7 @@ export class AdminComponent implements OnInit {
     dialogRef.afterClosed().subscribe((result: Conference) => {
       if (result) {
         console.log('Conference added, reloading data...');
-        this.loadDashboardData(); // Reload conferences and stats after add
+        this.loadDashboardData(); 
         this.snackBar.open('Conference added successfully!', 'Close', {
           duration: 3000,
           horizontalPosition: 'center',
@@ -205,69 +200,111 @@ export class AdminComponent implements OnInit {
     }
   }
 
+  loadProductIdsForExhibitors(): void {
+    // Load all products to get product IDs for each exhibitor
+    this.productService.getProducts().subscribe({
+      next: (allProducts) => {
+        // Set products for the admin panel
+        this.products = allProducts;
+        this.dashboardStats.totalProducts = allProducts.length;
+        
+        // Group products by exhibitor ID
+        const productsByExhibitor = allProducts.reduce((acc: any, product: any) => {
+          const exhibitorId = product.exhibitorId;
+          if (!acc[exhibitorId]) {
+            acc[exhibitorId] = [];
+          }
+          acc[exhibitorId].push(product.productId);
+          return acc;
+        }, {});
+
+        // Update exhibitors with their product IDs
+        this.exhibitors = this.exhibitors.map(exhibitor => ({
+          ...exhibitor,
+          productIds: productsByExhibitor[exhibitor['exhibitorId']] 
+            ? productsByExhibitor[exhibitor['exhibitorId']].join(', ') 
+            : 'N/A'
+        }));
+      },
+      error: (error) => {
+        console.error('Error loading products for exhibitor product IDs:', error);
+      }
+    });
+  }
+
   loadDashboardData(): void {
-    // Load attendees
+    console.log('Loading dashboard data...');
+    
     this.attendeeService.getAttendees().subscribe({
       next: (attendees: any[]) => {
+        console.log('Raw attendees from backend:', attendees);
         this.attendees = attendees.map(attendee => ({
           ...attendee,
-          id: attendee.attendeeId, // Map attendeeId to id for the interface
-          status: (attendee as any).status || 'active' // Add default status
+          id: attendee.attendeeId, 
+          status: (attendee as any).status || 'active'
         }));
+        console.log('Processed attendees:', this.attendees);
         this.dashboardStats.totalAttendees = attendees.length;
-        this.dashboardStats.activeUsers = this.attendees.filter(a => a.status === 'active').length;
       },
       error: (error) => {
         console.error('Error loading attendees:', error);
       }
     });
 
-    // Load exhibitors
     this.exhibitorService.getExhibitors().subscribe({
       next: (exhibitors: any[]) => {
+        console.log('Raw exhibitors from backend:', exhibitors);
         this.exhibitors = exhibitors.map(exhibitor => ({
           ...exhibitor,
-          id: exhibitor.exhibitorId, // Map exhibitorId to id for the interface
-          status: (exhibitor as any).status || 'active' // Add default status
+          id: exhibitor.exhibitorId,
+          status: (exhibitor as any).status || 'active' 
         }));
+        console.log('Processed exhibitors:', this.exhibitors);
         this.dashboardStats.totalExhibitors = exhibitors.length;
         console.log('Exhibitors loaded:', this.exhibitors);
+        
+        // Load product IDs for each exhibitor
+        this.loadProductIdsForExhibitors();
       },
       error: (error) => {
         console.error('Error loading exhibitors:', error);
       }
     });
 
-    // Load products
-    this.productService.getProducts().subscribe({
-      next: (products) => {
-        this.products = products;
-        this.dashboardStats.totalProducts = products.length;
+    // Products are loaded in loadProductIdsForExhibitors method to avoid duplicate API calls
+
+    forkJoin({
+      conferences: this.conferenceService.getConferences(),
+      speakers: this.speakerService.getSpeakers()
+    }).subscribe({
+      next: ({ conferences, speakers }) => {
+        this.conferences = conferences || [];
+        this.dashboardStats.totalConferences = this.conferences.length;
+        const speakerMap = new Map<string, Speaker>();
+        (speakers || []).forEach(s => speakerMap.set((s.name || '').trim().toLowerCase(), s));
+        const seen = new Set<string>();
+        this.speakers = [];
+        this.conferences.forEach(conf => {
+          const speakerName = (conf.speaker || '').trim();
+          if (speakerName && !seen.has(speakerName.toLowerCase())) {
+            seen.add(speakerName.toLowerCase());
+            const existing = speakerMap.get(speakerName.toLowerCase());
+            this.speakers.push(existing ? { ...existing } : {
+              speakerId: 0,
+              name: speakerName,
+              email: '',
+              bio: '',
+              expertise: '',
+              phone: '',
+              organization: ''
+            });
+          }
+        });
+        this.dashboardStats.totalSpeakers = this.speakers.length;
       },
       error: (error) => {
-        console.error('Error loading products:', error);
+        console.error('Error loading conferences/speakers:', error);
       }
-    });
-
-    // Load conferences
-    this.conferenceService.getConferences().subscribe({
-      next: (conferences) => {
-        this.conferences = conferences;
-        this.dashboardStats.totalConferences = conferences.length;
-        console.log('Conferences loaded:', this.conferences);
-      },
-      error: (error) => {
-        console.error('Error loading conferences:', error);
-      }
-    });
-
-    this.speakerService.getSpeakers().subscribe({
-      next: (speakers) => {
-        this.speakers = speakers;
-        this.dashboardStats.totalSpeakers = speakers.length;
-        console.log('Speakers loaded:', this.speakers);
-      },
-      error: (error) => { console.error('Error loading speakers:', error); }
     });
 
           this.partnerService.getPartners().subscribe({
@@ -279,16 +316,6 @@ export class AdminComponent implements OnInit {
         error: (error) => { console.error('Error loading partners:', error); }
       });
 
-      this.floorService.getFloors().subscribe({
-        next: (floors) => {
-          this.floors = floors;
-          this.dashboardStats.totalFloors = floors.length;
-          console.log('Floors loaded:', this.floors);
-        },
-        error: (error) => { console.error('Error loading floors:', error); }
-      });
-
-    // Load sponsors
     this.sponsorService.getSponsors().subscribe({
       next: (sponsors) => {
         this.sponsors = sponsors;
@@ -299,35 +326,16 @@ export class AdminComponent implements OnInit {
     });
   }
 
-  // Update method signatures to match HTML template
+
+
   toggleUserStatus(user: UserWithStatus): void {
     const newStatus = user.status === 'active' ? 'inactive' : 'active';
+    console.log('Toggling user status:', { userId: user.id, oldStatus: user.status, newStatus });
     
-    if (this.attendees.includes(user)) {
-      // This is an attendee
-      const attendeeData = {
-        name: user.name,
-        email: user.email,
-        phone: user['phone'] || '',
-        password: user['password'] || '',
-        status: newStatus
-      };
-      
-      this.attendeeService.updateAttendee(user.id, attendeeData).subscribe({
-        next: (response) => {
-          user.status = newStatus;
-          this.snackBar.open(`Attendee ${newStatus} successfully`, 'Close', { duration: 3000 });
-        },
-        error: (error) => {
-          console.error('Error updating attendee status:', error);
-          this.snackBar.open('Error updating attendee status', 'Close', { duration: 3000 });
-        }
-      });
-    } else if (this.exhibitors.includes(user)) {
-      // This is an exhibitor
+    if (this.exhibitors.includes(user)) {
       const exhibitorData = {
         exhibitorId: user['exhibitorId'] || user.id,
-        name: user.name,
+        companyName: user['companyName'],
         contactPerson: user.contactPerson || '',
         email: user.email,
         boothNumber: user['boothNumber'] || '',
@@ -336,12 +344,17 @@ export class AdminComponent implements OnInit {
         status: newStatus
       };
       
+      user.status = newStatus;
+      console.log('Updated exhibitor status in UI:', user.status);
+      
       this.exhibitorService.updateExhibitor(user.id, exhibitorData).subscribe({
         next: (response) => {
-          user.status = newStatus;
+          console.log('Exhibitor status update response:', response);
           this.snackBar.open(`Exhibitor ${newStatus} successfully`, 'Close', { duration: 3000 });
+          setTimeout(() => this.loadDashboardData(), 500);
         },
         error: (error) => {
+          user.status = user.status === 'active' ? 'inactive' : 'active';
           console.error('Error updating exhibitor status:', error);
           this.snackBar.open('Error updating exhibitor status', 'Close', { duration: 3000 });
         }
@@ -351,7 +364,6 @@ export class AdminComponent implements OnInit {
 
   deleteUser(user: UserWithStatus): void {
     if (this.attendees.includes(user)) {
-      // This is an attendee
       this.attendeeService.deleteAttendee(user.id).subscribe({
         next: (response) => {
           this.attendees = this.attendees.filter(a => a.id !== user.id);
@@ -363,7 +375,6 @@ export class AdminComponent implements OnInit {
         }
       });
     } else if (this.exhibitors.includes(user)) {
-      // This is an exhibitor
       this.exhibitorService.deleteExhibitor(user.id).subscribe({
         next: (response) => {
           this.exhibitors = this.exhibitors.filter(e => e.id !== user.id);
@@ -379,7 +390,6 @@ export class AdminComponent implements OnInit {
 
   editUser(user: UserWithStatus, type: 'attendee' | 'exhibitor'): void {
     if (type === 'attendee') {
-      // Attendee editing is not allowed
       this.snackBar.open('Attendee editing is not available', 'Close', {
         duration: 3000,
         horizontalPosition: 'center',
@@ -398,13 +408,51 @@ export class AdminComponent implements OnInit {
     dialogRef.afterClosed().subscribe((result: any) => {
       if (result) {
         this.loadDashboardData();
-        this.snackBar.open('Exhibitor updated successfully!', 'Close', { duration: 3000, horizontalPosition: 'center', verticalPosition: 'top' });
+        this.snackBar.open('Exhibitor updated successfully!', 'Close', { 
+          duration: 3000, 
+          horizontalPosition: 'center', 
+          verticalPosition: 'top' 
+        });
+      }
+    });
+  }
+
+  requestExhibitorPayment(user: UserWithStatus): void {
+    const paymentLink = prompt('Paste the Stripe Payment Link for this exhibitor:');
+    if (!paymentLink) { return; }
+    const email = user.email || '';
+    if (!email || !email.trim()) {
+      this.snackBar.open('Exhibitor has no email. Add email in Edit, then use Request Payment.', 'Close', {
+        duration: 4000,
+        horizontalPosition: 'center',
+        verticalPosition: 'top'
+      });
+      return;
+    }
+    
+    const companyName = user['companyName'] || user.contactPerson || 'Exhibitor';
+    
+    // Send payment request via backend API
+    this.exhibitorService.sendPaymentRequest(email, companyName, paymentLink).subscribe({
+      next: (response) => {
+        this.snackBar.open('Payment request email sent successfully to ' + email, 'Close', {
+          duration: 4000,
+          horizontalPosition: 'center',
+          verticalPosition: 'top'
+        });
+      },
+      error: (error) => {
+        console.error('Failed to send payment request:', error);
+        this.snackBar.open('Failed to send payment request email. Check console for details.', 'Close', {
+          duration: 5000,
+          horizontalPosition: 'center',
+          verticalPosition: 'top'
+        });
       }
     });
   }
 
   addExhibitor(): void {
-    // In a real app, you would open an add exhibitor dialog here
     this.snackBar.open('Add exhibitor functionality coming soon', 'Close', {
       duration: 3000,
       horizontalPosition: 'center',
@@ -413,7 +461,6 @@ export class AdminComponent implements OnInit {
   }
 
   assignBooth(exhibitor: UserWithStatus): void {
-    // In a real app, you would open a booth assignment dialog here
     this.snackBar.open('Booth assignment functionality coming soon', 'Close', {
       duration: 3000,
       horizontalPosition: 'center',
@@ -434,16 +481,13 @@ export class AdminComponent implements OnInit {
     if (!dateString) return 'N/A';
     
     try {
-      // Handle different date formats
       if (dateString.includes(',')) {
-        // Handle array format like "2025,7,20,9,0"
         const parts = dateString.split(',').map(p => parseInt(p.trim()));
         if (parts.length >= 3) {
-          const date = new Date(parts[0], parts[1] - 1, parts[2]); // month is 0-indexed
+          const date = new Date(parts[0], parts[1] - 1, parts[2]); 
           return date.toLocaleDateString();
         }
       } else {
-        // Handle standard date format
         const date = new Date(dateString);
         if (!isNaN(date.getTime())) {
           return date.toLocaleDateString();
@@ -466,18 +510,22 @@ export class AdminComponent implements OnInit {
         this.exhibitorService.addExhibitor(result).subscribe({
           next: () => {
             console.log('Exhibitor added, reloading data...');
-            this.loadDashboardData(); // Reload exhibitors and stats after add
-            this.snackBar.open('Exhibitor added successfully!', 'Close', {
-              duration: 3000,
+            this.loadDashboardData(); 
+            this.snackBar.open('Exhibitor added successfully! Default password: Welcome123', 'Close', {
+              duration: 5000,
               horizontalPosition: 'center',
-              verticalPosition: 'top'
+              verticalPosition: 'top',
+              panelClass: ['success-snackbar']
             });
           },
           error: (err) => {
-            this.snackBar.open('Failed to add exhibitor: ' + (err.error?.message || err.message), 'Close', {
-              duration: 3000,
+            console.error('Error adding exhibitor:', err);
+            const errorMessage = err.error?.error || err.error?.message || err.message || 'Unknown error occurred';
+            this.snackBar.open('Failed to add exhibitor: ' + errorMessage, 'Close', {
+              duration: 8000,
               horizontalPosition: 'center',
-              verticalPosition: 'top'
+              verticalPosition: 'top',
+              panelClass: ['error-snackbar']
             });
           }
         });
@@ -532,51 +580,56 @@ export class AdminComponent implements OnInit {
     }
   }
 
-  openAddFloorDialog() {
-    const dialogRef = this.dialog.open(AddFloorComponent, { width: '600px' });
-    dialogRef.afterClosed().subscribe((result: Floor) => {
-      if (result) {
-        this.loadDashboardData();
-        this.snackBar.open('Floor added successfully!', 'Close', { duration: 3000, horizontalPosition: 'center', verticalPosition: 'top' });
-      }
-    });
-  }
-
-  editFloor(floor: Floor) {
-    const dialogRef = this.dialog.open(AddFloorComponent, { 
-      width: '600px',
-      data: { floor: floor }
-    });
-    dialogRef.afterClosed().subscribe((result: Floor) => {
-      if (result) {
-        this.loadDashboardData();
-        this.snackBar.open('Floor updated successfully!', 'Close', { duration: 3000, horizontalPosition: 'center', verticalPosition: 'top' });
-      }
-    });
-  }
-
-  deleteFloor(floor: Floor) {
-    if (confirm(`Are you sure you want to delete floor ${floor.floorNumber}?`)) {
-      this.floorService.deleteFloor(floor.floorId).subscribe({
-        next: () => {
-          this.loadDashboardData();
-          this.snackBar.open('Floor deleted successfully!', 'Close', { duration: 3000, horizontalPosition: 'center', verticalPosition: 'top' });
-        },
-        error: (error) => {
-          this.snackBar.open('Error deleting floor: ' + error.message, 'Close', { duration: 5000, horizontalPosition: 'center', verticalPosition: 'top' });
-        }
-      });
-    }
-  }
-
   openAddSponsorDialog() {
     const dialogRef = this.dialog.open(AddSponsorComponent, { width: '600px' });
     dialogRef.afterClosed().subscribe((result: Sponsor) => {
       if (result) {
-        this.loadDashboardData();
-        this.snackBar.open('Sponsor added successfully!', 'Close', { duration: 3000, horizontalPosition: 'center', verticalPosition: 'top' });
+        this.sponsorService.createSponsor(result).subscribe({
+          next: () => {
+            this.loadDashboardData();
+            this.snackBar.open('Sponsor added successfully!', 'Close', {
+              duration: 3000,
+              horizontalPosition: 'center',
+              verticalPosition: 'top',
+              panelClass: ['success-snackbar']
+            });
+          },
+          error: (err) => {
+            const errorMessage = err.error?.error || err.error?.message || err.message || 'Unknown error occurred';
+            this.snackBar.open('Failed to add sponsor: ' + errorMessage, 'Close', {
+              duration: 5000,
+              horizontalPosition: 'center',
+              verticalPosition: 'top',
+              panelClass: ['error-snackbar']
+            });
+          }
+        });
       }
     });
+  }
+
+  requestSponsorPayment(sponsor: Sponsor): void {
+    const paymentLink = prompt('Paste the Stripe Payment Link for this sponsor:');
+    if (!paymentLink) { return; }
+    const email = sponsor.email || '';
+    if (!email || !email.trim()) {
+      this.snackBar.open('Sponsor has no email. Add email in Edit, then use Request Payment.', 'Close', {
+        duration: 4000,
+        horizontalPosition: 'center',
+        verticalPosition: 'top'
+      });
+      return;
+    }
+    const subject = encodeURIComponent('Sponsor Registration Payment');
+    const body = encodeURIComponent(
+      `Dear ${sponsor.contactPerson || sponsor.name || 'Sponsor'},\n\n` +
+      `Please complete your sponsor registration payment using the secure link below.\n\n` +
+      `${paymentLink}\n\n` +
+      `If you have any questions, reply to this email.\n\n` +
+      `Best regards,\nAdmin`
+    );
+    const mailtoUrl = `mailto:${email}?subject=${subject}&body=${body}`;
+    window.open(mailtoUrl, '_self');
   }
 
   editSponsor(sponsor: Sponsor): void {
@@ -594,7 +647,9 @@ export class AdminComponent implements OnInit {
 
   deleteSponsor(sponsor: Sponsor): void {
     if (confirm(`Are you sure you want to delete sponsor "${sponsor.name}"?`)) {
-      this.sponsorService.deleteSponsor(sponsor.sponsorId).subscribe({
+      const id = sponsor.sponsorId;
+      if (id == null) return;
+      this.sponsorService.deleteSponsor(id).subscribe({
         next: () => {
           this.sponsors = this.sponsors.filter(s => s.sponsorId !== sponsor.sponsorId);
           this.dashboardStats.totalSponsors--;
@@ -621,17 +676,33 @@ export class AdminComponent implements OnInit {
   }
 
   deleteSpeaker(speaker: Speaker): void {
-    if (confirm(`Are you sure you want to delete speaker "${speaker.name}"?`)) {
-      this.speakerService.deleteSpeaker(speaker.speakerId).subscribe({
-        next: () => {
-          this.speakers = this.speakers.filter(s => s.speakerId !== speaker.speakerId);
-          this.dashboardStats.totalSpeakers--;
-          this.snackBar.open('Speaker deleted successfully!', 'Close', { duration: 3000, horizontalPosition: 'center', verticalPosition: 'top' });
-        },
-        error: (error) => {
-          this.snackBar.open('Error deleting speaker: ' + error.message, 'Close', { duration: 5000, horizontalPosition: 'center', verticalPosition: 'top' });
-        }
-      });
+    if (confirm(`Are you sure you want to delete speaker "${speaker.name}"? This will remove the speaker from all conferences.`)) {
+      const speakerName = (speaker.name || '').trim();
+      if (!speakerName) {
+        this.snackBar.open('Cannot delete speaker without a name.', 'Close', { duration: 3000 });
+        return;
+      }
+      if (speaker.speakerId && speaker.speakerId > 0) {
+        this.speakerService.deleteSpeaker(speaker.speakerId).subscribe({
+          next: () => {
+            this.loadDashboardData();
+            this.snackBar.open('Speaker deleted successfully!', 'Close', { duration: 3000, horizontalPosition: 'center', verticalPosition: 'top' });
+          },
+          error: (error) => {
+            this.snackBar.open('Error deleting speaker: ' + error.message, 'Close', { duration: 5000, horizontalPosition: 'center', verticalPosition: 'top' });
+          }
+        });
+      } else {
+        this.conferenceService.clearSpeakerFromConferences(speakerName).subscribe({
+          next: () => {
+            this.loadDashboardData();
+            this.snackBar.open('Speaker removed from conferences successfully!', 'Close', { duration: 3000, horizontalPosition: 'center', verticalPosition: 'top' });
+          },
+          error: (error) => {
+            this.snackBar.open('Error removing speaker: ' + error.message, 'Close', { duration: 5000, horizontalPosition: 'center', verticalPosition: 'top' });
+          }
+        });
+      }
     }
   }
 

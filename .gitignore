@@ -1,1 +1,37 @@
-"exhibition-backend/target/" 
+# Node modules
+node_modules/
+exhibition-frontend/node_modules/
+
+# Build outputs
+exhibition-frontend/dist/
+exhibition-backend/target/
+
+# Environment files (keep .env.example)
+exhibition-backend/.env
+
+# IDE
+.vscode/
+.idea/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Images (uploaded files)
+exhibition-backend/images/logos/*
+exhibition-backend/images/products/*
+exhibition-backend/images/sponsors/*
+exhibition-backend/images/misc/*
+!exhibition-backend/images/logos/.gitkeep
+!exhibition-backend/images/products/.gitkeep
+!exhibition-backend/images/sponsors/.gitkeep
+!exhibition-backend/images/misc/.gitkeep
+
+# Keep example images
+!exhibition-backend/images/*.png
+!exhibition-backend/images/*.jpg

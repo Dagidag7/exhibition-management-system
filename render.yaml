@@ -1,0 +1,40 @@
+services:
+  - type: web
+    name: exhibition-backend
+    runtime: java
+    buildCommand: cd exhibition-backend && mvn clean package -DskipTests
+    startCommand: cd exhibition-backend && java -jar target/exhibition-backend-1.0-SNAPSHOT-jar-with-dependencies.jar
+    envVars:
+      - key: SERVER_PORT
+        value: 8888
+      - key: DB_DRIVER
+        value: org.postgresql.Driver
+      - key: EMAIL_PROVIDER
+        value: smtp
+      - key: SMTP_HOST
+        value: smtp-relay.brevo.com
+      - key: SMTP_PORT
+        value: 587
+      - key: SMTP_USER
+        value: a923b0001@smtp-brevo.com
+      - key: SMTP_FROM
+        value: dagimawitkelem129@gmail.com
+      - key: SMTP_USE_TLS
+        value: true
+      - key: ADMIN_EMAIL
+        value: dagimawitkelem129@gmail.com
+
+  - type: web
+    name: exhibition-frontend
+    runtime: static
+    buildCommand: cd exhibition-frontend && npm install && npm run build -- --configuration production
+    staticPublishPath: exhibition-frontend/dist/exhibition-frontend/browser
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+
+databases:
+  - name: exhibition-db
+    databaseName: exhibition_db
+    user: exhibition_system

@@ -15,6 +15,8 @@ public class AuthController {
         router.get("/auth/me").handler(ctx -> getCurrentUser(ctx, authService));
         router.post("/auth/logout").handler(ctx -> logout(ctx, authService));
         router.post("/auth/change-password").handler(ctx -> changePassword(ctx, authService));
+        router.get("/auth/users/:id/status").handler(ctx -> getUserStatus(ctx, authService));
+        router.get("/auth/users/:id").handler(ctx -> getUserById(ctx, authService));
     }
     
     private static void login(RoutingContext ctx, AuthService authService) {
@@ -77,11 +79,16 @@ public class AuthController {
                     .encode());
             return;
         }
-        
-        // For now, we'll return a mock user (in real app, decode JWT and get user from DB)
+
+        // Use configured admin email when available (ADMIN_EMAIL env var)
+        String adminEmail = System.getenv("ADMIN_EMAIL");
+        if (adminEmail == null || adminEmail.trim().isEmpty()) {
+            adminEmail = "admin@example.com";
+        }
+
         JsonObject mockUser = new JsonObject()
             .put("id", 1)
-            .put("email", "admin@exhibition.com")
+            .put("email", adminEmail)
             .put("name", "Admin User")
             .put("role", "admin");
             
@@ -92,7 +99,6 @@ public class AuthController {
     }
     
     private static void logout(RoutingContext ctx, AuthService authService) {
-        // In a real application, you would invalidate the JWT token here
         ctx.response()
             .setStatusCode(200)
             .putHeader("Content-Type", "application/json")
@@ -125,6 +131,90 @@ public class AuthController {
                     .put("message", "Password changed successfully")
                     .encode());
                     
+        } catch (Exception e) {
+            ctx.response()
+                .setStatusCode(500)
+                .putHeader("Content-Type", "application/json")
+                .end(new JsonObject()
+                    .put("error", "Internal server error")
+                    .encode());
+        }
+    }
+    
+    private static void getUserStatus(RoutingContext ctx, AuthService authService) {
+        try {
+            String userId = ctx.pathParam("id");
+            
+            if (userId == null) {
+                ctx.response()
+                    .setStatusCode(400)
+                    .putHeader("Content-Type", "application/json")
+                    .end(new JsonObject()
+                        .put("error", "User ID is required")
+                        .encode());
+                return;
+            }
+            
+            // Get user status from database
+            authService.getUserStatus(Integer.parseInt(userId), result -> {
+                if (result.succeeded()) {
+                    JsonObject statusData = result.result();
+                    ctx.response()
+                        .setStatusCode(200)
+                        .putHeader("Content-Type", "application/json")
+                        .end(statusData.encode());
+                } else {
+                    ctx.response()
+                        .setStatusCode(404)
+                        .putHeader("Content-Type", "application/json")
+                        .end(new JsonObject()
+                            .put("error", "User not found")
+                            .encode());
+                }
+            });
+            
+        } catch (Exception e) {
+            ctx.response()
+                .setStatusCode(500)
+                .putHeader("Content-Type", "application/json")
+                .end(new JsonObject()
+                    .put("error", "Internal server error")
+                    .encode());
+        }
+    }
+    
+    private static void getUserById(RoutingContext ctx, AuthService authService) {
+        try {
+            String userId = ctx.pathParam("id");
+            
+            if (userId == null) {
+                ctx.response()
+                    .setStatusCode(400)
+                    .putHeader("Content-Type", "application/json")
+                    .end(new JsonObject()
+                        .put("error", "User ID is required")
+                        .encode());
+                return;
+            }
+            
+            // Get user data from database
+            authService.getUserById(Integer.parseInt(userId), result -> {
+                if (result.succeeded()) {
+                    JsonObject userData = result.result();
+                    ctx.response()
+                        .setStatusCode(200)
+                        .putHeader("Content-Type", "application/json")
+                        .end(userData.encode());
+                } else {
+                    ctx.response()
+                        .setStatusCode(404)
+                        .putHeader("Content-Type", "application/json")
+                        .end(new JsonObject()
+                            .put("error", "User not found")
+                            .encode());
+                }
+            });
+            
         } catch (Exception e) {
             ctx.response()
                 .setStatusCode(500)

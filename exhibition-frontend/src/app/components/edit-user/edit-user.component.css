@@ -1,0 +1,90 @@
+.dialog-container {
+  padding: 20px;
+  max-width: 600px;
+  min-width: 500px;
+}
+
+.user-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-section {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 20px;
+  background-color: #fafafa;
+}
+
+.form-section h3 {
+  margin: 0 0 15px 0;
+  color: #333;
+  font-size: 16px;
+  font-weight: 500;
+  border-bottom: 2px solid #2196f3;
+  padding-bottom: 8px;
+}
+
+.form-row {
+  display: flex;
+  gap: 15px;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.half-width {
+  flex: 1;
+}
+
+mat-form-field {
+  margin-bottom: 10px;
+}
+
+mat-dialog-content {
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+mat-dialog-actions {
+  padding-top: 20px;
+  margin-bottom: 0;
+  gap: 10px;
+}
+
+.mat-mdc-form-field {
+  width: 100%;
+}
+
+.mat-mdc-dialog-actions {
+  justify-content: flex-end;
+}
+
+button[mat-raised-button] {
+  min-width: 120px;
+}
+
+button[mat-raised-button] mat-icon {
+  margin-right: 8px;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .dialog-container {
+    min-width: 300px;
+    padding: 15px;
+  }
+  
+  .form-row {
+    flex-direction: column;
+    gap: 0;
+  }
+  
+  .half-width {
+    width: 100%;
+  }
+}
+
+

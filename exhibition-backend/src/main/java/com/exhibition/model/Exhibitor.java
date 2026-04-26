@@ -1,27 +1,26 @@
 package com.exhibition.model;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 public class Exhibitor {
     private int exhibitorId;
-    private String name;
+    private String companyName;
     private String contactPerson;
     private String email;
     private String boothNumber;
-    private String product_Ids; // Store as comma-separated string or JSON
+    private String productIds;
     private String password;
     private String logoUrl;
     private String floorNumber;
     private String status;
     private boolean passwordChanged;
+    private boolean isTemporaryPassword;
     private LocalDateTime registrationDate;
 
-    // Constructors
     public Exhibitor() {}
 
-    public Exhibitor(String name, String contactPerson, String email, String boothNumber, String floorNumber) {
-        this.name = name;
+    public Exhibitor(String companyName, String contactPerson, String email, String boothNumber, String floorNumber) {
+        this.companyName = companyName;
         this.contactPerson = contactPerson;
         this.email = email;
         this.boothNumber = boothNumber;
@@ -29,7 +28,6 @@ public class Exhibitor {
         this.registrationDate = LocalDateTime.now();
     }
 
-    // Getters and Setters
     public int getExhibitorId() {
         return exhibitorId;
     }
@@ -38,12 +36,12 @@ public class Exhibitor {
         this.exhibitorId = exhibitorId;
     }
 
-    public String getName() {
-        return name;
+    public String getCompanyName() {
+        return companyName;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setCompanyName(String companyName) {
+        this.companyName = companyName;
     }
 
     public String getContactPerson() {
@@ -71,11 +69,11 @@ public class Exhibitor {
     }
 
     public String getProductIds() {
-        return product_Ids;
+        return productIds;
     }
 
     public void setProductIds(String productIds) {
-        this.product_Ids = productIds;
+        this.productIds = productIds;
     }
 
     public String getPassword() {
@@ -124,5 +122,13 @@ public class Exhibitor {
 
     public void setPasswordChanged(boolean passwordChanged) {
         this.passwordChanged = passwordChanged;
+    }
+
+    public boolean isTemporaryPassword() {
+        return isTemporaryPassword;
+    }
+
+    public void setTemporaryPassword(boolean temporaryPassword) {
+        isTemporaryPassword = temporaryPassword;
     }
 }

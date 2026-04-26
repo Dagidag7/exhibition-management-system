@@ -1,55 +1,58 @@
 <div class="dialog-container">
-  <h2 mat-dialog-title>{{ isEditMode ? 'Edit Product' : 'Add New Product' }}</h2>
+  <h2 mat-dialog-title>{{ isEditMode ? ('form.editProduct' | translate) : ('form.addProduct' | translate) }}</h2>
   
   <mat-dialog-content>
     <form [formGroup]="productForm" class="product-form">
       <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Product Name</mat-label>
-        <input matInput formControlName="name" placeholder="Enter product name" required>
+        <mat-label>{{ 'form.productName' | translate }}</mat-label>
+        <input matInput formControlName="name" [placeholder]="'form.productName' | translate" required maxlength="100">
         <mat-error *ngIf="productForm.get('name')?.hasError('required')">
-          Product name is required
+          {{ 'form.productNameRequired' | translate }}
         </mat-error>
         <mat-error *ngIf="productForm.get('name')?.hasError('maxlength')">
-          Product name cannot exceed 100 characters
+          {{ 'form.productNameMaxLength' | translate }}
         </mat-error>
       </mat-form-field>
 
       <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Description</mat-label>
-        <textarea matInput formControlName="description" placeholder="Enter product description" rows="3"></textarea>
+        <mat-label>{{ 'form.description' | translate }}</mat-label>
+        <textarea matInput formControlName="description" [placeholder]="'form.description' | translate" rows="3"></textarea>
       </mat-form-field>
 
       <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Exhibitor</mat-label>
-        <mat-select formControlName="exhibitorId" required>
-          <mat-option *ngFor="let exhibitor of exhibitors" [value]="exhibitor.exhibitorId">
-            {{ exhibitor.name }} (ID: {{ exhibitor.exhibitorId }})
+        <mat-label>{{ 'form.category' | translate }}</mat-label>
+        <input matInput formControlName="category" [placeholder]="'form.category' | translate" maxlength="50">
+        <mat-error *ngIf="productForm.get('category')?.hasError('maxlength')">
+          {{ 'form.categoryMaxLength' | translate }}
+        </mat-error>
+      </mat-form-field>
+
+      <!-- Only show exhibitor selector in admin panel; hide it on exhibitor dashboard -->
+      <mat-form-field *ngIf="!data?.fromExhibitorDashboard" appearance="outline" class="full-width">
+        <mat-label>{{ 'form.exhibitor' | translate }}</mat-label>
+        <mat-select formControlName="exhibitorId" [placeholder]="'form.selectExhibitor' | translate">
+          <mat-option *ngFor="let ex of exhibitors" [value]="ex.exhibitorId">
+            {{ ex.companyName }} (ID: {{ ex.exhibitorId }})
           </mat-option>
         </mat-select>
         <mat-error *ngIf="productForm.get('exhibitorId')?.hasError('required')">
-          Exhibitor is required
+          {{ 'form.exhibitorRequired' | translate }}
         </mat-error>
       </mat-form-field>
 
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Category</mat-label>
-        <input matInput formControlName="category" placeholder="Enter product category">
-        <mat-error *ngIf="productForm.get('category')?.hasError('maxlength')">
-          Category cannot exceed 50 characters
-        </mat-error>
-      </mat-form-field>
-
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Image URL</mat-label>
-        <input matInput formControlName="imageUrl" placeholder="Enter image URL">
-      </mat-form-field>
+      <app-image-upload
+        [currentImageUrl]="productForm.get('imageUrl')?.value"
+        category="products"
+        [label]="'form.productImage' | translate"
+        (imageUrlChange)="onImageUploaded($event)">
+      </app-image-upload>
     </form>
   </mat-dialog-content>
 
   <mat-dialog-actions align="end">
-    <button mat-button (click)="onCancel()">Cancel</button>
+    <button mat-button (click)="onCancel()">{{ 'form.cancel' | translate }}</button>
     <button mat-raised-button color="primary" (click)="onSubmit()" [disabled]="productForm.invalid">
-      {{ isEditMode ? 'Update' : 'Add' }} Product
+      {{ isEditMode ? ('form.updateProduct' | translate) : ('form.add' | translate) }} {{ 'admin.products' | translate }}
     </button>
   </mat-dialog-actions>
 </div> 

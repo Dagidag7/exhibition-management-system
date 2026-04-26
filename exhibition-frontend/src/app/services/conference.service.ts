@@ -8,7 +8,7 @@ export interface Conference {
   description: string;
   date: string;
   time: string;
-  location: string;
+  floorNumber: string;
   speaker: string;
   startTime?: string;
   endTime?: string;
@@ -41,5 +41,9 @@ export class ConferenceService {
 
   getConference(id: number): Observable<Conference> {
     return this.http.get<Conference>(`${this.apiUrl}/${id}`);
+  }
+
+  clearSpeakerFromConferences(speakerName: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/clear-speaker`, { speakerName });
   }
 } 

@@ -18,5 +18,11 @@ export const routes: Routes = [
     canActivate: [AuthGuard],
     data: { role: 'exhibitor' }
   },
+  {
+    path: 'attendee',
+    loadComponent: () => import('./pages/attendee/attendee.component').then(m => m.AttendeeComponent),
+    canActivate: [AuthGuard],
+    data: { role: 'attendee' }
+  },
   { path: '**', redirectTo: '' }
 ];

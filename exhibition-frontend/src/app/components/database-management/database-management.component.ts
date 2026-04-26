@@ -11,9 +11,15 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatTableModule } from '@angular/material/table';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
 
-import { DatabaseService, DatabaseHealth, TableSchema, DatabaseStats, SchemaUpdateRequest } from '../../services/database.service';
+import { AttendeeService } from '../../services/attendee.service';
+import { ExhibitorService } from '../../services/exhibitor.service';
+import { EditUserComponent } from '../edit-user/edit-user.component';
+import { TranslatePipe } from '../../pipes/translate.pipe';
+import { TranslationService } from '../../services/translation.service';
 
 @Component({
   selector: 'app-database-management',
@@ -31,198 +37,241 @@ import { DatabaseService, DatabaseHealth, TableSchema, DatabaseStats, SchemaUpda
     MatFormFieldModule,
     MatInputModule,
     MatCheckboxModule,
-    ReactiveFormsModule
+    MatTableModule,
+    MatTooltipModule,
+    ReactiveFormsModule,
+    TranslatePipe
   ],
   templateUrl: './database-management.component.html',
   styleUrls: ['./database-management.component.css']
 })
 export class DatabaseManagementComponent implements OnInit {
-  databaseHealth: DatabaseHealth | null = null;
-  conferenceSchema: TableSchema | null = null;
-  databaseStats: DatabaseStats | null = null;
-  allTables: string[] = [];
+  users: any[] = [];
+  selectedUser: any = null;
+  loading = false;
   
-  loading = {
-    health: false,
-    schema: false,
-    stats: false,
-    tables: false,
-    update: false,
-    sample: false
-  };
-
-  schemaUpdateForm: FormGroup;
-  recentOperations: Array<{action: string, timestamp: number, success: boolean, message: string}> = [];
+  displayedColumns: string[] = ['id', 'name', 'email', 'role'];
 
   constructor(
-    private databaseService: DatabaseService,
+    private attendeeService: AttendeeService,
+    private exhibitorService: ExhibitorService,
     private snackBar: MatSnackBar,
     private dialog: MatDialog,
-    private fb: FormBuilder
-  ) {
-    this.schemaUpdateForm = this.fb.group({
-      addLocation: [false],
-      addTime: [false]
-    });
-  }
+    private translationService: TranslationService
+  ) {}
 
   ngOnInit(): void {
-    this.loadDatabaseHealth();
-    this.loadAllTables();
-    this.loadDatabaseStats();
-    this.loadConferenceSchema();
+    this.loadUsers();
   }
 
-  loadDatabaseHealth(): void {
-    this.loading.health = true;
-    this.databaseService.getDatabaseHealth().subscribe({
-      next: (health) => {
-        this.databaseHealth = health;
-        this.loading.health = false;
-      },
-      error: (error) => {
-        console.error('Failed to load database health:', error);
-        this.loading.health = false;
-        this.snackBar.open('Failed to load database health', 'Close', { duration: 3000 });
-      }
-    });
-  }
-
-  loadAllTables(): void {
-    this.loading.tables = true;
-    this.databaseService.getAllTables().subscribe({
-      next: (response) => {
-        this.allTables = response.tables;
-        this.loading.tables = false;
-      },
-      error: (error) => {
-        console.error('Failed to load tables:', error);
-        this.loading.tables = false;
-        this.snackBar.open('Failed to load database tables', 'Close', { duration: 3000 });
-      }
-    });
-  }
-
-  loadDatabaseStats(): void {
-    this.loading.stats = true;
-    this.databaseService.getDatabaseStats().subscribe({
-      next: (stats) => {
-        this.databaseStats = stats;
-        this.loading.stats = false;
-      },
-      error: (error) => {
-        console.error('Failed to load database stats:', error);
-        this.loading.stats = false;
-        this.snackBar.open('Failed to load database statistics', 'Close', { duration: 3000 });
-      }
-    });
-  }
-
-  loadConferenceSchema(): void {
-    this.loading.schema = true;
-    this.databaseService.getTableSchema('conference').subscribe({
-      next: (schema) => {
-        this.conferenceSchema = schema;
-        this.loading.schema = false;
-      },
-      error: (error) => {
-        console.error('Failed to load conference schema:', error);
-        this.loading.schema = false;
-        this.snackBar.open('Failed to load conference schema', 'Close', { duration: 3000 });
-      }
-    });
-  }
-
-  updateConferenceSchema(): void {
-    const updates = this.schemaUpdateForm.value;
+  loadUsers(): void {
+    this.loading = true;
     
-    // Check if any updates are selected
-    if (!updates.addLocation && !updates.addTime) {
-      this.snackBar.open('Please select at least one schema update', 'Close', { duration: 3000 });
-      return;
+    // Load both attendees and exhibitors
+    Promise.all([
+      this.attendeeService.getAttendees().toPromise(),
+      this.exhibitorService.getExhibitors().toPromise()
+    ]).then(([attendees, exhibitors]) => {
+      this.users = [
+        ...(attendees || []).map((attendee: any) => ({ ...attendee, userType: 'attendee' })),
+        ...(exhibitors || []).map((exhibitor: any) => ({ ...exhibitor, userType: 'exhibitor' })),
+        // Add admin user manually if not present
+        { id: 0, name: 'Admin User', email: 'dagimawitkelem129@gmail.com', userType: 'admin', registrationDate: new Date().toISOString() }
+      ];
+      this.loading = false;
+    }).catch(error => {
+      console.error('Failed to load users:', error);
+      this.loading = false;
+      this.snackBar.open(this.translationService.translate('database.failedToLoadUsers'), this.translationService.translate('form.close'), { duration: 3000 });
+    });
+  }
+
+  getUserRole(user: any): string {
+    if (user.userType === 'exhibitor') {
+      return 'Exhibitor';
+    } else if (user.userType === 'attendee') {
+      return 'Attendee';
+    } else if (user.email === 'dagimawitkelem129@gmail.com') {
+      return 'Admin';
     }
-
-    this.loading.update = true;
-    this.databaseService.updateConferenceSchema(updates).subscribe({
-      next: (response) => {
-        this.loading.update = false;
-        if (response.success) {
-          this.snackBar.open(response.message, 'Close', { duration: 5000 });
-          this.addRecentOperation('Update Conference Schema', true, response.message);
-          this.loadConferenceSchema(); // Reload schema
-        } else {
-          this.snackBar.open(response.message, 'Close', { duration: 5000 });
-          this.addRecentOperation('Update Conference Schema', false, response.message);
-        }
-      },
-      error: (error) => {
-        console.error('Failed to update schema:', error);
-        this.loading.update = false;
-        const message = error.error?.message || 'Failed to update conference schema';
-        this.snackBar.open(message, 'Close', { duration: 5000 });
-        this.addRecentOperation('Update Conference Schema', false, message);
-      }
-    });
+    return 'User';
   }
 
-  addSampleConferences(): void {
-    this.loading.sample = true;
-    this.databaseService.addSampleConferences().subscribe({
-      next: (response) => {
-        this.loading.sample = false;
-        if (response.success) {
-          this.snackBar.open(response.message, 'Close', { duration: 5000 });
-          this.addRecentOperation('Add Sample Conferences', true, response.message);
-          this.loadDatabaseStats(); // Reload stats
-        } else {
-          this.snackBar.open(response.message, 'Close', { duration: 5000 });
-          this.addRecentOperation('Add Sample Conferences', false, response.message);
-        }
-      },
-      error: (error) => {
-        console.error('Failed to add sample conferences:', error);
-        this.loading.sample = false;
-        const message = error.error?.message || 'Failed to add sample conferences';
-        this.snackBar.open(message, 'Close', { duration: 5000 });
-        this.addRecentOperation('Add Sample Conferences', false, message);
-      }
-    });
+  getTranslatedRole(user: any): string {
+    const role = this.getUserRole(user);
+    if (role === 'Exhibitor') {
+      return this.translationService.translate('database.roleExhibitor');
+    } else if (role === 'Attendee') {
+      return this.translationService.translate('database.roleAttendee');
+    } else if (role === 'Admin') {
+      return this.translationService.translate('database.roleAdmin');
+    }
+    return this.translationService.translate('database.roleUser');
   }
 
-  addRecentOperation(action: string, success: boolean, message: string): void {
-    this.recentOperations.unshift({
-      action,
-      timestamp: Date.now(),
-      success,
-      message
-    });
-    
-    // Keep only last 10 operations
-    if (this.recentOperations.length > 10) {
-      this.recentOperations = this.recentOperations.slice(0, 10);
+  getRoleColor(user: any): string {
+    const role = this.getUserRole(user);
+    switch (role) {
+      case 'Admin':
+        return 'warn';
+      case 'Exhibitor':
+        return 'primary';
+      case 'Attendee':
+        return 'accent';
+      default:
+        return 'primary';
     }
   }
 
   getStatusColor(status: string): string {
-    return status === 'healthy' ? 'accent' : 'warn';
+    return status === 'active' ? 'accent' : 'warn';
   }
 
-  getOperationIcon(success: boolean): string {
-    return success ? 'check_circle' : 'error';
+  getFormattedDate(date: any): string {
+    if (!date) return 'N/A';
+    
+    try {
+      if (typeof date === 'string') {
+        return new Date(date).toLocaleDateString();
+      } else if (date instanceof Date) {
+        return date.toLocaleDateString();
+      } else {
+        return new Date(date).toLocaleDateString();
+      }
+    } catch (error) {
+      return 'N/A';
+    }
   }
 
-  getOperationColor(success: boolean): string {
-    return success ? 'accent' : 'warn';
+  getExhibitorCount(): number {
+    return this.users.filter(user => user.userType === 'exhibitor').length;
   }
 
-  formatTimestamp(timestamp: number): string {
-    return new Date(timestamp).toLocaleString();
+  getAdminCount(): number {
+    return this.users.filter(user => this.getUserRole(user) === 'Admin').length;
   }
 
-  refreshAll(): void {
-    this.loadDatabaseHealth();
-    this.loadAllTables();
-    this.loadDatabaseStats();
-    this.loadConferenceSchema();
+  getActiveCount(): number {
+    return this.users.filter(user => user.status === 'active').length;
+  }
+
+  toggleUserStatus(user: any): void {
+    const newStatus = user.status === 'active' ? 'inactive' : 'active';
+    const userId = user.id || user.exhibitorId || user.attendeeId;
+    
+    if (!userId) {
+      this.snackBar.open('User ID not found', 'Close', { duration: 3000 });
+      return;
+    }
+
+    this.loading = true;
+    
+    if (user.userType === 'exhibitor') {
+      // Immediately update the UI for better user experience
+      user.status = newStatus;
+      
+      this.exhibitorService.updateExhibitor(userId, { ...user, status: newStatus }).subscribe({
+        next: (response) => {
+          this.loading = false;
+          this.snackBar.open(this.translationService.translate('database.exhibitorStatusUpdated', { status: newStatus }), this.translationService.translate('form.close'), { duration: 3000 });
+          // Refresh the data to ensure consistency with backend
+          setTimeout(() => this.loadUsers(), 500);
+        },
+        error: (error) => {
+          user.status = user.status === 'active' ? 'inactive' : 'active';
+          console.error('Failed to update exhibitor status:', error);
+          this.loading = false;
+          this.snackBar.open('Failed to update exhibitor status', 'Close', { duration: 3000 });
+        }
+      });
+    } else if (user.userType === 'attendee') {
+      user.status = newStatus;
+      
+      this.attendeeService.updateAttendee(userId, { ...user, status: newStatus }).subscribe({
+        next: (response) => {
+          this.loading = false;
+          this.snackBar.open(this.translationService.translate('database.attendeeStatusUpdated', { status: newStatus }), this.translationService.translate('form.close'), { duration: 3000 });
+          // Refresh the data to ensure consistency with backend
+          setTimeout(() => this.loadUsers(), 500);
+        },
+        error: (error) => {
+          // Revert the UI change if backend update failed
+          user.status = user.status === 'active' ? 'inactive' : 'active';
+          console.error('Failed to update attendee status:', error);
+          this.loading = false;
+          this.snackBar.open(this.translationService.translate('userManagement.failedToUpdateAttendee'), this.translationService.translate('form.close'), { duration: 3000 });
+        }
+      });
+    }
+  }
+
+  deleteUser(user: any): void {
+    const userId = user.id || user.exhibitorId || user.attendeeId;
+    const userName = user.name || user.companyName;
+    
+    if (!userId) {
+      this.snackBar.open('User ID not found', 'Close', { duration: 3000 });
+      return;
+    }
+
+    const confirmMessage = `Are you sure you want to delete ${userName}? This action cannot be undone.`;
+    
+    if (confirm(confirmMessage)) {
+      this.loading = true;
+      
+      if (user.userType === 'exhibitor') {
+        this.exhibitorService.deleteExhibitor(userId).subscribe({
+          next: (response) => {
+            this.users = this.users.filter(u => (u.id || u.exhibitorId) !== userId);
+            this.loading = false;
+            this.snackBar.open(this.translationService.translate('database.exhibitorDeleted'), this.translationService.translate('form.close'), { duration: 3000 });
+          },
+          error: (error) => {
+            console.error('Failed to delete exhibitor:', error);
+            this.loading = false;
+            this.snackBar.open(this.translationService.translate('userManagement.failedToDeleteExhibitor'), this.translationService.translate('form.close'), { duration: 3000 });
+          }
+        });
+      } else if (user.userType === 'attendee') {
+        this.attendeeService.deleteAttendee(userId).subscribe({
+          next: (response) => {
+            this.users = this.users.filter(u => (u.id || u.attendeeId) !== userId);
+            this.loading = false;
+            this.snackBar.open(this.translationService.translate('database.attendeeDeleted'), this.translationService.translate('form.close'), { duration: 3000 });
+          },
+          error: (error) => {
+            console.error('Failed to delete attendee:', error);
+            this.loading = false;
+            this.snackBar.open(this.translationService.translate('database.failedToDeleteAttendee'), this.translationService.translate('form.close'), { duration: 3000 });
+          }
+        });
+      }
+    }
+  }
+
+  editUser(user: any): void {
+    // Don't allow editing admin users
+    if (user.email === 'dagimawitkelem129@gmail.com') {
+      this.snackBar.open(this.translationService.translate('userManagement.adminCannotEdit'), this.translationService.translate('form.close'), { duration: 3000 });
+      return;
+    }
+
+    const dialogRef = this.dialog.open(EditUserComponent, {
+      width: '600px',
+      data: { user: user }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result && result.success) {
+        // Update the user in the local array
+        const index = this.users.findIndex(u => 
+          (u.id || u.exhibitorId || u.attendeeId) === (user.id || user.exhibitorId || user.attendeeId)
+        );
+        if (index !== -1) {
+          this.users[index] = { ...this.users[index], ...result.user };
+        }
+        this.snackBar.open(this.translationService.translate('database.userUpdated'), this.translationService.translate('form.close'), { duration: 3000 });
+      }
+    });
   }
 } 

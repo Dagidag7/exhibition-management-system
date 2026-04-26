@@ -1,0 +1,50 @@
+<h2 mat-dialog-title>{{ 'profile.editProfileTitle' | translate }}</h2>
+<mat-dialog-content [formGroup]="Form">
+  <mat-form-field appearance="outline" class="full-width">
+    <mat-label>{{ 'profile.fullName' | translate }}</mat-label>
+    <input matInput formControlName="name" [placeholder]="'profile.enterFullName' | translate" required maxlength="100" />
+    <mat-error *ngIf="Form.get('name')?.hasError('required')">
+      {{ 'profile.nameRequired' | translate }}
+    </mat-error>
+    <mat-error *ngIf="Form.get('name')?.hasError('maxlength')">
+      {{ 'profile.nameMaxLength' | translate }}
+    </mat-error>
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" class="full-width">
+    <mat-label>{{ 'profile.email' | translate }}</mat-label>
+    <input matInput formControlName="email" type="email" [placeholder]="'profile.enterEmail' | translate" required maxlength="100" />
+    <mat-error *ngIf="Form.get('email')?.hasError('required')">
+      {{ 'profile.emailRequired' | translate }}
+    </mat-error>
+    <mat-error *ngIf="Form.get('email')?.hasError('email')">
+      {{ 'profile.validEmail' | translate }}
+    </mat-error>
+    <mat-error *ngIf="Form.get('email')?.hasError('maxlength')">
+      {{ 'profile.emailMaxLength' | translate }}
+    </mat-error>
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" class="full-width">
+    <mat-label>{{ 'profile.phone' | translate }}</mat-label>
+    <input matInput formControlName="phone" [placeholder]="'profile.enterPhone' | translate" required maxlength="20" />
+    <mat-error *ngIf="Form.get('phone')?.hasError('required')">
+      {{ 'profile.phoneRequired' | translate }}
+    </mat-error>
+    <mat-error *ngIf="Form.get('phone')?.hasError('maxlength')">
+      {{ 'profile.phoneMaxLength' | translate }}
+    </mat-error>
+  </mat-form-field>
+
+  <app-image-upload
+    [currentImageUrl]="Form.get('profilePhoto')?.value"
+    category="misc"
+    [label]="'profile.profilePhoto' | translate"
+    (imageUrlChange)="onProfilePhotoUploaded($event)">
+  </app-image-upload>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="close()">{{ 'form.cancel' | translate }}</button>
+  <button mat-button color="primary" (click)="save()">{{ 'form.save' | translate }}</button>
+</mat-dialog-actions>
+

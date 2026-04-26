@@ -10,25 +10,20 @@ import io.vertx.ext.web.handler.BodyHandler;
 public class DatabaseController {
     
     public static void registerRoutes(Router router, DatabaseService databaseService) {
-        // Add body handler for POST requests
         router.route("/database/*").handler(BodyHandler.create());
         
-        // Database health check
         router.get("/database/health").handler(ctx -> getDatabaseHealth(ctx, databaseService));
         
-        // Get all tables
         router.get("/database/tables").handler(ctx -> getAllTables(ctx, databaseService));
         
-        // Get table schema
         router.get("/database/schema/:tableName").handler(ctx -> getTableSchema(ctx, databaseService));
         
-        // Update conference schema
+
+        
         router.post("/database/update-conference-schema").handler(ctx -> updateConferenceSchema(ctx, databaseService));
         
-        // Add sample conference data
         router.post("/database/add-sample-conferences").handler(ctx -> addSampleConferences(ctx, databaseService));
         
-        // Get database statistics
         router.get("/database/stats").handler(ctx -> getDatabaseStats(ctx, databaseService));
     }
     
@@ -169,4 +164,6 @@ public class DatabaseController {
                                     .encode());
                 });
     }
+    
+
 } 

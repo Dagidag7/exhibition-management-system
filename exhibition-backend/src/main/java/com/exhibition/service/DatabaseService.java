@@ -18,7 +18,6 @@ public class DatabaseService {
         this.sqlClient = sqlClient;
     }
 
-    // Get database health status
     public Future<JsonObject> getDatabaseHealth() {
         Promise<JsonObject> promise = Promise.promise();
         sqlClient.query("SELECT version() as db_version, current_database() as db_name", ar -> {
@@ -44,7 +43,6 @@ public class DatabaseService {
         return promise.future();
     }
 
-    // Get table schema information
     public Future<JsonObject> getTableSchema(String tableName) {
         String sql = """
             SELECT 
@@ -87,7 +85,6 @@ public class DatabaseService {
         return promise.future();
     }
 
-    // Get all tables in the database
     public Future<JsonArray> getAllTables() {
         String sql = """
             SELECT table_name 
@@ -116,19 +113,20 @@ public class DatabaseService {
         return promise.future();
     }
 
-    // Update conference table schema (add new columns)
     public Future<JsonObject> updateConferenceSchema(JsonObject updates) {
         List<String> operations = new ArrayList<>();
         JsonArray params = new JsonArray();
         
-        // Check if we need to add location column
         if (updates.getBoolean("addLocation", false)) {
             operations.add("ADD COLUMN location VARCHAR(255)");
         }
         
-        // Check if we need to add time column
         if (updates.getBoolean("addTime", false)) {
             operations.add("ADD COLUMN time VARCHAR(50)");
+        }
+        
+        if (updates.getBoolean("addFloorNumber", false)) {
+            operations.add("ADD COLUMN floor_number VARCHAR(10)");
         }
         
         if (operations.isEmpty()) {
@@ -159,7 +157,6 @@ public class DatabaseService {
         return promise.future();
     }
 
-    // Add sample conference data
     public Future<JsonObject> addSampleConferences() {
         String sql = """
             INSERT INTO conference (title, description, date, time, location, speaker) 
@@ -193,36 +190,28 @@ public class DatabaseService {
         return promise.future();
     }
 
-    // Get database statistics
     public Future<JsonObject> getDatabaseStats() {
+        Promise<JsonObject> promise = Promise.promise();
+        
         String sql = """
             SELECT 
-                (SELECT COUNT(*) FROM attendee) as attendee_count,
                 (SELECT COUNT(*) FROM exhibitor) as exhibitor_count,
-                (SELECT COUNT(*) FROM sponsor) as sponsor_count,
-                (SELECT COUNT(*) FROM partner) as partner_count,
-                (SELECT COUNT(*) FROM floor) as floor_count,
+                (SELECT COUNT(*) FROM attendee) as attendee_count,
                 (SELECT COUNT(*) FROM product) as product_count,
-                (SELECT COUNT(*) FROM speaker) as speaker_count,
                 (SELECT COUNT(*) FROM conference) as conference_count
             """;
         
-        Promise<JsonObject> promise = Promise.promise();
         sqlClient.query(sql, ar -> {
             if (ar.succeeded()) {
                 ResultSet resultSet = ar.result();
                 JsonObject stats = new JsonObject();
                 if (resultSet.getNumRows() > 0) {
                     JsonObject row = resultSet.getRows().get(0);
-                    stats.put("attendeeCount", row.getInteger("attendee_count"))
-                           .put("exhibitorCount", row.getInteger("exhibitor_count"))
-                           .put("sponsorCount", row.getInteger("sponsor_count"))
-                           .put("partnerCount", row.getInteger("partner_count"))
-                           .put("floorCount", row.getInteger("floor_count"))
-                           .put("productCount", row.getInteger("product_count"))
-                           .put("speakerCount", row.getInteger("speaker_count"))
-                           .put("conferenceCount", row.getInteger("conference_count"))
-                           .put("timestamp", System.currentTimeMillis());
+                    stats.put("exhibitorCount", row.getInteger("exhibitor_count"))
+                          .put("attendeeCount", row.getInteger("attendee_count"))
+                          .put("productCount", row.getInteger("product_count"))
+                          .put("conferenceCount", row.getInteger("conference_count"))
+                          .put("timestamp", System.currentTimeMillis());
                 }
                 promise.complete(stats);
             } else {
@@ -232,6 +221,9 @@ public class DatabaseService {
                 promise.complete(error);
             }
         });
+        
         return promise.future();
     }
+    
+
 } 

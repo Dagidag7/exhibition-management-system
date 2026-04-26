@@ -1,48 +1,34 @@
 <div class="exhibitor-container">
-  <!-- Header Section -->
   <div class="header-section">
     <div class="header-content">
       <div class="exhibitor-info">
-        <img [src]="currentExhibitor.logoUrl" [alt]="currentExhibitor.name" class="exhibitor-logo">
+        <img [src]="currentExhibitor.logoUrl" [alt]="currentExhibitor.companyName" class="exhibitor-logo">
         <div class="exhibitor-details">
-          <h1>{{ currentExhibitor.name }}</h1>
+                      <h1>{{ currentExhibitor.companyName }}</h1>
           <p>{{ currentExhibitor.contactPerson }} • {{ currentExhibitor.email }}</p>
           <div class="booth-info">
             <mat-chip color="primary" selected>
               <mat-icon>location_on</mat-icon>
-              Booth {{ currentExhibitor.boothNumber }} • Floor {{ currentExhibitor.floorNumber }}
+              Booth {{ currentExhibitor.boothNumber }} • Floor {{ currentExhibitor.floorNumber }} • ID {{ currentExhibitor.exhibitorId }}
             </mat-chip>
           </div>
         </div>
       </div>
-      <div class="profile-completion">
-        <div class="completion-info">
-          <span>Profile Completion</span>
-          <span class="completion-percentage">{{ dashboardStats.profileCompletion }}%</span>
-        </div>
-        <mat-progress-bar 
-          mode="determinate" 
-          [value]="dashboardStats.profileCompletion"
-          [color]="dashboardStats.profileCompletion >= 80 ? 'primary' : 'warn'">
-        </mat-progress-bar>
-      </div>
     </div>
   </div>
 
-  <!-- Navigation Tabs -->
   <mat-tab-group 
     [(selectedIndex)]="activeTab" 
-    (selectedIndexChange)="setActiveTab($event === 0 ? 'products' : $event === 1 ? 'conferences' : 'profile')"
+    (selectedIndexChange)="setActiveTab($event)"
     class="dashboard-tabs">
     
-    <!-- Products Tab -->
-    <mat-tab label="Products">
+    <mat-tab [label]="'exhibitor.products' | translate">
       <div class="tab-content">
         <div class="content-header">
-          <h2>Product Management</h2>
+          <h2>{{ 'exhibitor.products' | translate }}</h2>
           <button mat-raised-button color="primary" (click)="openAddProductDialog()">
             <mat-icon>add</mat-icon>
-            Add Product
+            {{ 'exhibitor.addProduct' | translate }}
           </button>
         </div>
         
@@ -53,17 +39,17 @@
           </ng-container>
 
           <ng-container matColumnDef="name">
-            <th mat-header-cell *matHeaderCellDef>Name</th>
+            <th mat-header-cell *matHeaderCellDef>{{ 'admin.name' | translate }}</th>
             <td mat-cell *matCellDef="let product">{{ product.name }}</td>
           </ng-container>
 
           <ng-container matColumnDef="description">
-            <th mat-header-cell *matHeaderCellDef>Description</th>
+            <th mat-header-cell *matHeaderCellDef>{{ 'admin.description' | translate }}</th>
             <td mat-cell *matCellDef="let product">{{ product.description }}</td>
           </ng-container>
 
           <ng-container matColumnDef="category">
-            <th mat-header-cell *matHeaderCellDef>Category</th>
+            <th mat-header-cell *matHeaderCellDef>{{ 'admin.category' | translate }}</th>
             <td mat-cell *matCellDef="let product">{{ product.category }}</td>
           </ng-container>
 
@@ -76,7 +62,7 @@
           </ng-container>
 
           <ng-container matColumnDef="actions">
-            <th mat-header-cell *matHeaderCellDef>Actions</th>
+            <th mat-header-cell *matHeaderCellDef>{{ 'common.actions' | translate }}</th>
             <td mat-cell *matCellDef="let product">
               <button mat-icon-button (click)="editProduct(product)" matTooltip="Edit">
                 <mat-icon>edit</mat-icon>
@@ -93,81 +79,31 @@
 
         <div class="no-data" *ngIf="products.length === 0">
           <mat-icon>inventory_2</mat-icon>
-          <p>No products found. Start by adding your first product!</p>
+          <p>{{ 'exhibitor.noProducts' | translate }}</p>
           <button mat-raised-button color="primary" (click)="openAddProductDialog()">
-            Add Product
+            {{ 'exhibitor.addProduct' | translate }}
           </button>
         </div>
       </div>
     </mat-tab>
+    
 
-    <!-- Conferences Tab -->
-    <mat-tab label="Conferences">
+    <mat-tab [label]="'exhibitor.profile' | translate">
       <div class="tab-content">
         <div class="content-header">
-          <h2>Available Conferences</h2>
-        </div>
-        
-        <table mat-table [dataSource]="conferences" class="data-table">
-          <ng-container matColumnDef="conferenceId">
-            <th mat-header-cell *matHeaderCellDef>ID</th>
-            <td mat-cell *matCellDef="let conference">{{ conference.conferenceId }}</td>
-          </ng-container>
-
-          <ng-container matColumnDef="title">
-            <th mat-header-cell *matHeaderCellDef>Title</th>
-            <td mat-cell *matCellDef="let conference">{{ conference.title }}</td>
-          </ng-container>
-
-          <ng-container matColumnDef="description">
-            <th mat-header-cell *matHeaderCellDef>Description</th>
-            <td mat-cell *matCellDef="let conference">{{ conference.description }}</td>
-          </ng-container>
-
-          <ng-container matColumnDef="date">
-            <th mat-header-cell *matHeaderCellDef>Date</th>
-            <td mat-cell *matCellDef="let conference">{{ getFormattedDate(conference.date) }}</td>
-          </ng-container>
-
-          <ng-container matColumnDef="time">
-            <th mat-header-cell *matHeaderCellDef>Time</th>
-            <td mat-cell *matCellDef="let conference">{{ conference.time }}</td>
-          </ng-container>
-
-          <ng-container matColumnDef="location">
-            <th mat-header-cell *matHeaderCellDef>Location</th>
-            <td mat-cell *matCellDef="let conference">{{ conference.location }}</td>
-          </ng-container>
-
-          <ng-container matColumnDef="speaker">
-            <th mat-header-cell *matHeaderCellDef>Speaker</th>
-            <td mat-cell *matCellDef="let conference">{{ conference.speaker }}</td>
-          </ng-container>
-
-          <tr mat-header-row *matHeaderRowDef="displayedColumnsConferences"></tr>
-          <tr mat-row *matRowDef="let row; columns: displayedColumnsConferences;"></tr>
-        </table>
-
-        <div class="no-data" *ngIf="conferences.length === 0">
-          <mat-icon>event_busy</mat-icon>
-          <p>No conferences available at the moment.</p>
-        </div>
-      </div>
-    </mat-tab>
-
-    <!-- Profile Tab -->
-    <mat-tab label="Profile">
-      <div class="tab-content">
-        <div class="content-header">
-          <h2>Company Profile</h2>
+          <h2>{{ 'exhibitor.profile' | translate }}</h2>
           <div class="profile-actions">
             <button mat-raised-button color="primary" (click)="openChangePasswordDialog()">
               <mat-icon>lock</mat-icon>
-              Change Password
+              {{ 'exhibitor.changePassword' | translate }}
             </button>
-            <button mat-raised-button color="accent">
+            <button mat-raised-button color="accent" (click)="openEditProfile()">
               <mat-icon>edit</mat-icon>
-              Edit Profile
+              {{ 'exhibitor.editProfile' | translate }}
+            </button>
+            <button mat-raised-button color="primary" (click)="downloadReceipt()">
+              <mat-icon>download</mat-icon>
+              Download Registration Receipt
             </button>
           </div>
         </div>
@@ -175,34 +111,31 @@
         <div class="profile-section">
           <mat-card class="profile-card">
             <mat-card-header>
-              <mat-card-title>Company Information</mat-card-title>
+              <mat-card-title>{{ 'exhibitor.personalInfo' | translate }}</mat-card-title>
             </mat-card-header>
             <mat-card-content>
               <div class="profile-info">
                 <div class="info-row">
-                  <span class="label">Company Name:</span>
-                  <span class="value">{{ currentExhibitor.name }}</span>
+                  <span class="label">{{ 'exhibitor.company' | translate }}:</span>
+                  <span class="value">{{ currentExhibitor.companyName }}</span>
                 </div>
                 <div class="info-row">
-                  <span class="label">Contact Person:</span>
+                  <span class="label">{{ 'exhibitor.contactPerson' | translate }}:</span>
                   <span class="value">{{ currentExhibitor.contactPerson }}</span>
                 </div>
                 <div class="info-row">
-                  <span class="label">Email:</span>
+                  <span class="label">{{ 'exhibitor.email' | translate }}:</span>
                   <span class="value">{{ currentExhibitor.email }}</span>
                 </div>
                 <div class="info-row">
-                  <span class="label">Booth Number:</span>
-                  <span class="value">{{ currentExhibitor.boothNumber }}</span>
-                </div>
-                <div class="info-row">
-                  <span class="label">Floor:</span>
+                  <span class="label">{{ 'exhibitor.floor' | translate }}:</span>
                   <span class="value">{{ currentExhibitor.floorNumber }}</span>
                 </div>
                 <div class="info-row">
-                  <span class="label">Status:</span>
-                  <mat-chip [color]="getStatusColor(currentExhibitor.status)" selected>
-                    {{ currentExhibitor.status }}
+                  <span class="label">{{ 'exhibitor.status' | translate }}:</span>
+                  <mat-chip [style.background-color]="getStatusColor(currentExhibitor.status)" [style.color]="'white'" selected>
+                    <mat-icon *ngIf="currentExhibitor.status?.toLowerCase() === 'active'" style="font-size: 18px; height: 18px; width: 18px;">check_circle</mat-icon>
+                    {{ getStatusText(currentExhibitor.status) | translate }}
                   </mat-chip>
                 </div>
               </div>
@@ -211,20 +144,19 @@
 
           <mat-card class="profile-card">
             <mat-card-header>
-              <mat-card-title>Booth Information</mat-card-title>
+              <mat-card-title>{{ 'exhibitor.boothInformation' | translate }}</mat-card-title>
             </mat-card-header>
             <mat-card-content>
               <div class="booth-details">
                 <div class="booth-map">
                   <mat-icon>map</mat-icon>
-                  <p>Floor {{ currentExhibitor.floorNumber }} - Booth {{ currentExhibitor.boothNumber }}</p>
+                  <p>{{ 'exhibitor.floor' | translate }} {{ currentExhibitor.floorNumber }} - {{ 'exhibitor.booth' | translate }} {{ currentExhibitor.boothNumber }}</p>
                 </div>
                 <div class="booth-features" *ngIf="floorInfo">
-                  <h4>Floor Features:</h4>
+                  <h4>{{ 'exhibitor.floorFeatures' | translate }}</h4>
                   <ul>
-                    <li>Layout: {{ floorInfo.layoutImage ? 'Available' : 'Not available' }}</li>
-                    <li>Exhibitors: {{ getExhibitorCount() }}</li>
-                    <li>Conferences: {{ getConferenceCount() }}</li>
+                    <li>{{ 'exhibitor.layout' | translate }}: {{ floorInfo.layoutImage ? ('exhibitor.available' | translate) : ('exhibitor.notAvailable' | translate) }}</li>
+                    <li>{{ 'exhibitor.exhibitorsCount' | translate }}: {{ getExhibitorCount() }}</li>
                   </ul>
                 </div>
               </div>

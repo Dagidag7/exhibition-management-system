@@ -19,8 +19,7 @@
       <div class="form-row">
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Layout Image URL</mat-label>
-          <input matInput formControlName="layoutImage" placeholder="Enter layout image URL (optional)">
-          <mat-hint>URL to the floor layout image</mat-hint>
+          <input matInput formControlName="layoutImage" placeholder="Enter layout image URL (optional)" maxlength="500">
         </mat-form-field>
       </div>
 
@@ -28,7 +27,6 @@
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Exhibitor IDs</mat-label>
           <textarea matInput formControlName="exhibitorIds" placeholder="Enter exhibitor IDs (comma-separated)" rows="2"></textarea>
-          <mat-hint>Comma-separated list of exhibitor IDs assigned to this floor</mat-hint>
         </mat-form-field>
       </div>
 
@@ -36,8 +34,44 @@
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Conference IDs</mat-label>
           <textarea matInput formControlName="conferenceIds" placeholder="Enter conference IDs (comma-separated)" rows="2"></textarea>
-          <mat-hint>Comma-separated list of conference IDs assigned to this floor</mat-hint>
         </mat-form-field>
+      </div>
+
+      <!-- Floor Occupancy Information -->
+      <div *ngIf="floorOccupancy && isEditMode" class="occupancy-info">
+        <h3>Current Floor Occupancy</h3>
+        <div class="occupancy-stats">
+          <div class="stat-item">
+            <span class="stat-label">Exhibitors:</span>
+            <span class="stat-value" [class.warning]="floorOccupancy.exhibitorCount >= 8" [class.error]="floorOccupancy.exhibitorCount >= 10">
+              {{ floorOccupancy.exhibitorCount }}/10
+            </span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Conferences:</span>
+            <span class="stat-value" [class.error]="floorOccupancy.conferenceCount >= 1">
+              {{ floorOccupancy.conferenceCount }}/1
+            </span>
+          </div>
+        </div>
+        
+        <div *ngIf="floorOccupancy.exhibitors.length > 0" class="occupancy-details">
+          <h4>Exhibitors on this floor:</h4>
+          <ul>
+            <li *ngFor="let exhibitor of floorOccupancy.exhibitors">
+              {{ exhibitor.companyName }} (Booth {{ exhibitor.boothNumber }})
+            </li>
+          </ul>
+        </div>
+        
+        <div *ngIf="floorOccupancy.conferences.length > 0" class="occupancy-details">
+          <h4>Conferences on this floor:</h4>
+          <ul>
+            <li *ngFor="let conference of floorOccupancy.conferences">
+              {{ conference.title }} ({{ conference.date }} at {{ conference.time }})
+            </li>
+          </ul>
+        </div>
       </div>
     </mat-dialog-content>
 

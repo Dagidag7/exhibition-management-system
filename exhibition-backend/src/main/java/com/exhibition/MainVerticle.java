@@ -1,14 +1,11 @@
 package com.exhibition;
 
-import com.exhibition.model.Attendee;
 import com.exhibition.repository.AttendeeRepository;
 import com.exhibition.repository.AttendeeRepositoryImpl;
 import com.exhibition.repository.ConferenceRepository;
 import com.exhibition.repository.ConferenceRepositoryImpl;
 import com.exhibition.repository.ExhibitorRepository;
 import com.exhibition.repository.ExhibitorRepositoryImpl;
-import com.exhibition.repository.FloorRepository;
-import com.exhibition.repository.FloorRepositoryImpl;
 import com.exhibition.repository.PartnerRepository;
 import com.exhibition.repository.PartnerRepositoryImpl;
 import com.exhibition.repository.ProductRepository;
@@ -25,12 +22,10 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.jdbc.JDBCClient;
 import io.vertx.ext.sql.SQLClient;
 import io.vertx.ext.web.Router;
-import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.CorsHandler;
 import io.vertx.ext.web.handler.StaticHandler;
 import java.util.HashSet;
 import java.util.Set;
-import io.vertx.core.http.HttpServer;
 import com.exhibition.service.AttendeeService;
 import com.exhibition.service.AttendeeServiceImpl;
 import com.exhibition.service.ConferenceService;
@@ -58,17 +53,62 @@ import com.exhibition.controller.SpeakerController;
 import com.exhibition.controller.SponsorController;
 import com.exhibition.controller.AuthController;
 import com.exhibition.controller.DatabaseController;
-import com.exhibition.controller.ConferenceRegistrationController;
+import com.exhibition.controller.FileUploadController;
 import com.exhibition.service.DatabaseService;
-import com.exhibition.repository.ConferenceRegistrationRepository;
-import com.exhibition.repository.ConferenceRegistrationRepositoryImpl;
+import com.exhibition.service.FileService;
+import com.exhibition.service.FileServiceImpl;
 
 import io.vertx.ext.web.handler.BodyHandler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.vertx.core.json.jackson.DatabindCodec;
+import io.github.cdimascio.dotenv.Dotenv;
 
 public class MainVerticle extends AbstractVerticle {
+
+    // Load .env file for local development
+    static {
+        // Configure logging to reduce noise
+        try {
+            java.io.InputStream logConfig = MainVerticle.class.getClassLoader()
+                .getResourceAsStream("logging.properties");
+            if (logConfig != null) {
+                java.util.logging.LogManager.getLogManager().readConfiguration(logConfig);
+            }
+        } catch (Exception e) {
+            // Ignore logging configuration errors
+        }
+        
+        // Reduce C3P0 logging noise
+        System.setProperty("com.mchange.v2.log.MLog", "com.mchange.v2.log.FallbackMLog");
+        System.setProperty("com.mchange.v2.log.FallbackMLog.DEFAULT_CUTOFF_LEVEL", "WARNING");
+        
+        try {
+            // Try to load from exhibition-backend directory first
+            Dotenv dotenv = null;
+            try {
+                dotenv = Dotenv.configure()
+                    .directory("./exhibition-backend")
+                    .ignoreIfMissing()
+                    .load();
+            } catch (Exception e) {
+                // If that fails, try current directory
+                dotenv = Dotenv.configure()
+                    .directory("./")
+                    .ignoreIfMissing()
+                    .load();
+            }
+            
+            if (dotenv != null) {
+                dotenv.entries().forEach(entry -> 
+                    System.setProperty(entry.getKey(), entry.getValue())
+                );
+                System.out.println("✓ Loaded .env file successfully");
+            }
+        } catch (Exception e) {
+            System.out.println("No .env file found, using system environment variables: " + e.getMessage());
+        }
+    }
 
     public static SQLClient jdbc; // For repository access
     public static Vertx vertx;    // For global Vertx access
@@ -85,20 +125,50 @@ public class MainVerticle extends AbstractVerticle {
 
     @Override
     public void start() {
-        // Use executeBlocking to handle blocking operations
         vertx.executeBlocking(promise -> {
             try {
-                // Register JavaTimeModule for LocalDateTime serialization
                 ObjectMapper mapper = DatabindCodec.mapper();
                 mapper.registerModule(new JavaTimeModule());
                 DatabindCodec.prettyMapper().registerModule(new JavaTimeModule());
                 
-                // Database configuration
+                // Load database configuration from environment variables
+                String dbUrl = System.getProperty("DB_URL");
+                if (dbUrl == null || dbUrl.isBlank()) {
+                    dbUrl = System.getenv("DB_URL");
+                }
+                if (dbUrl == null || dbUrl.isBlank()) {
+                    dbUrl = "jdbc:postgresql://localhost:5432/exhibition_db";
+                }
+
+                String dbDriver = System.getProperty("DB_DRIVER");
+                if (dbDriver == null || dbDriver.isBlank()) {
+                    dbDriver = System.getenv("DB_DRIVER");
+                }
+                if (dbDriver == null || dbDriver.isBlank()) {
+                    dbDriver = "org.postgresql.Driver";
+                }
+
+                String dbUser = System.getProperty("DB_USER");
+                if (dbUser == null || dbUser.isBlank()) {
+                    dbUser = System.getenv("DB_USER");
+                }
+                if (dbUser == null || dbUser.isBlank()) {
+                    dbUser = "exhibition_system";
+                }
+
+                String dbPassword = System.getProperty("DB_PASSWORD");
+                if (dbPassword == null || dbPassword.isBlank()) {
+                    dbPassword = System.getenv("DB_PASSWORD");
+                }
+                if (dbPassword == null || dbPassword.isBlank()) {
+                    throw new IllegalStateException("DB_PASSWORD environment variable must be set");
+                }
+
                 JsonObject config = new JsonObject()
-                    .put("url", "jdbc:postgresql://localhost:5432/exhibition_db")
-                    .put("driver_class", "org.postgresql.Driver")
-                    .put("user", "exhibition_system")
-                    .put("password", "Dagikelem129@");
+                    .put("url", dbUrl)
+                    .put("driver_class", dbDriver)
+                    .put("user", dbUser)
+                    .put("password", dbPassword);
 
                 // Create the JDBC client
                 jdbc = JDBCClient.createShared(vertx, config);
@@ -129,8 +199,19 @@ public class MainVerticle extends AbstractVerticle {
         allowedHeaders.add("accept");
         allowedHeaders.add("Authorization");
 
+        // Get allowed origins from environment variable
+        String allowedOriginsEnv = System.getProperty("ALLOWED_ORIGINS");
+        if (allowedOriginsEnv == null || allowedOriginsEnv.isBlank()) {
+            allowedOriginsEnv = System.getenv("ALLOWED_ORIGINS");
+        }
+        String allowedOrigins = (allowedOriginsEnv != null && !allowedOriginsEnv.isBlank()) 
+            ? allowedOriginsEnv 
+            : "http://localhost:4200"; // Default for development
+
+        System.out.println("CORS allowed origins: " + allowedOrigins);
+
         router.route().handler(
-            CorsHandler.create("*") // Allow all origins for development
+            CorsHandler.create(allowedOrigins)
             .allowedHeaders(allowedHeaders)
             .allowedMethod(io.vertx.core.http.HttpMethod.GET)
             .allowedMethod(io.vertx.core.http.HttpMethod.POST)
@@ -138,7 +219,10 @@ public class MainVerticle extends AbstractVerticle {
             .allowedMethod(io.vertx.core.http.HttpMethod.DELETE)
         );
 
-        router.route().handler(BodyHandler.create());
+        // Configure BodyHandler to support file uploads
+        router.route().handler(BodyHandler.create()
+            .setUploadsDirectory("temp") // Temporary directory for uploaded files
+            .setDeleteUploadedFilesOnEnd(true)); // Auto-delete temp files after processing
 
         // Initialize services
         AttendeeRepository attendeeRepo = new AttendeeRepositoryImpl();
@@ -168,22 +252,21 @@ public class MainVerticle extends AbstractVerticle {
         
         DatabaseService databaseService = new DatabaseService(jdbc);
 
-        // Initialize conference registration
-        ConferenceRegistrationRepository registrationRepo = new ConferenceRegistrationRepositoryImpl(jdbc);
-        ConferenceRegistrationController registrationController = new ConferenceRegistrationController(registrationRepo);
+        // Initialize file upload service
+        FileService fileService = new FileServiceImpl(vertx);
 
         // Register controllers
-        AttendeeController.registerRoutes(router, attendeeService);
+        AttendeeController.registerRoutes(router, attendeeService, exhibitorService);
         ExhibitorController.registerRoutes(router, exhibitorService);
         ProductController.registerRoutes(router, productService);
         ConferenceController.registerRoutes(router, conferenceService);
-        SpeakerController.registerRoutes(router, speakerService);
+        SpeakerController.registerRoutes(router, speakerService, conferenceService);
         SponsorController.registerRoutes(router, sponsorService);
         PartnerController.registerRoutes(router, partnerService);
         FloorController.registerRoutes(router, floorService);
         AuthController.registerRoutes(router, authService);
         DatabaseController.registerRoutes(router, databaseService);
-        registrationController.registerRoutes(router);
+        FileUploadController.registerRoutes(router, fileService);
 
         // Start HTTP server
         vertx.createHttpServer()

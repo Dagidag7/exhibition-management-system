@@ -1,90 +1,90 @@
 <div class="dialog-container">
-  <h2 mat-dialog-title>Edit Exhibitor</h2>
+  <h2 mat-dialog-title>{{ 'form.editExhibitor' | translate }}</h2>
   
   <form [formGroup]="exhibitorForm" (ngSubmit)="onSubmit()">
     <mat-dialog-content>
       <div class="form-row">
         <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Company Name</mat-label>
-          <input matInput formControlName="name" placeholder="Enter company name" required>
-          <mat-error *ngIf="exhibitorForm.get('name')?.hasError('required')">
-            Company name is required
+          <mat-label>{{ 'form.companyName' | translate }}</mat-label>
+          <input matInput formControlName="companyName" [placeholder]="'form.companyName' | translate" required maxlength="100">
+          <mat-error *ngIf="exhibitorForm.get('companyName')?.hasError('required')">
+            {{ 'form.companyNameRequired' | translate }}
           </mat-error>
-          <mat-error *ngIf="exhibitorForm.get('name')?.hasError('maxlength')">
-            Company name cannot exceed 100 characters
+          <mat-error *ngIf="exhibitorForm.get('companyName')?.hasError('maxlength')">
+            {{ 'form.companyNameMaxLength' | translate }}
           </mat-error>
         </mat-form-field>
       </div>
 
       <div class="form-row">
         <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Contact Person</mat-label>
-          <input matInput formControlName="contactPerson" placeholder="Enter contact person name" required>
+          <mat-label>{{ 'form.contactPerson' | translate }}</mat-label>
+          <input matInput formControlName="contactPerson" [placeholder]="'form.contactPerson' | translate" required maxlength="100">
           <mat-error *ngIf="exhibitorForm.get('contactPerson')?.hasError('required')">
-            Contact person is required
+            {{ 'form.contactPersonRequired' | translate }}
           </mat-error>
           <mat-error *ngIf="exhibitorForm.get('contactPerson')?.hasError('maxlength')">
-            Contact person name cannot exceed 100 characters
+            {{ 'form.contactPersonMaxLength' | translate }}
           </mat-error>
         </mat-form-field>
       </div>
 
       <div class="form-row">
         <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Email</mat-label>
-          <input matInput type="email" formControlName="email" placeholder="Enter email address" required>
+          <mat-label>{{ 'form.email' | translate }}</mat-label>
+          <input matInput type="email" formControlName="email" [placeholder]="'form.email' | translate" required maxlength="100">
           <mat-error *ngIf="exhibitorForm.get('email')?.hasError('required')">
-            Email is required
+            {{ 'form.emailRequired' | translate }}
           </mat-error>
           <mat-error *ngIf="exhibitorForm.get('email')?.hasError('email')">
-            Please enter a valid email address
+            {{ 'form.emailInvalid' | translate }}
           </mat-error>
         </mat-form-field>
       </div>
 
       <div class="form-row">
         <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Booth Number</mat-label>
-          <input matInput formControlName="boothNumber" placeholder="Enter booth number" required>
+          <mat-label>{{ 'form.boothNumber' | translate }}</mat-label>
+          <input matInput formControlName="boothNumber" [placeholder]="'form.boothNumber' | translate" required>
           <mat-error *ngIf="exhibitorForm.get('boothNumber')?.hasError('required')">
-            Booth number is required
+            {{ 'form.boothNumberRequired' | translate }}
           </mat-error>
         </mat-form-field>
       </div>
 
       <div class="form-row">
         <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Floor Number</mat-label>
-          <input matInput formControlName="floorNumber" placeholder="Enter floor number">
+          <mat-label>{{ 'form.floorNumber' | translate }}</mat-label>
+          <input matInput formControlName="floorNumber" [placeholder]="'form.floorNumber' | translate">
         </mat-form-field>
       </div>
 
       <div class="form-row">
         <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Product IDs</mat-label>
-          <input matInput formControlName="productIds" placeholder="Enter product IDs (comma-separated)">
-          <mat-hint>Enter product IDs separated by commas</mat-hint>
+          <mat-label>{{ 'form.productIds' | translate }}</mat-label>
+          <input matInput formControlName="productIds" [placeholder]="'form.productIdsPlaceholder' | translate">
         </mat-form-field>
       </div>
 
       <div class="form-row">
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Logo URL</mat-label>
-          <input matInput formControlName="logoUrl" placeholder="Enter logo URL">
-          <mat-hint>Enter the URL of the exhibitor's logo</mat-hint>
-        </mat-form-field>
+        <app-image-upload
+          [currentImageUrl]="exhibitorForm.get('logoUrl')?.value"
+          category="logos"
+          [label]="'form.companyLogo' | translate"
+          (imageUrlChange)="onLogoUploaded($event)">
+        </app-image-upload>
       </div>
 
       <div class="form-row">
         <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Status</mat-label>
+          <mat-label>{{ 'form.status' | translate }}</mat-label>
           <mat-select formControlName="status" required>
-            <mat-option value="active">Active</mat-option>
-            <mat-option value="inactive">Inactive</mat-option>
-            <mat-option value="suspended">Suspended</mat-option>
+            <mat-option value="active">{{ 'userManagement.statusActive' | translate }}</mat-option>
+            <mat-option value="inactive">{{ 'userManagement.statusInactive' | translate }}</mat-option>
+            <mat-option value="suspended">{{ 'userManagement.statusSuspended' | translate }}</mat-option>
           </mat-select>
           <mat-error *ngIf="exhibitorForm.get('status')?.hasError('required')">
-            Status is required
+            {{ 'form.statusRequired' | translate }}
           </mat-error>
         </mat-form-field>
       </div>
@@ -92,11 +92,11 @@
 
     <mat-dialog-actions align="end">
       <button mat-button type="button" (click)="onCancel()" [disabled]="loading">
-        Cancel
+        {{ 'form.cancel' | translate }}
       </button>
       <button mat-raised-button color="primary" type="submit" [disabled]="exhibitorForm.invalid || loading">
         <mat-icon *ngIf="loading">hourglass_empty</mat-icon>
-        Update Exhibitor
+        {{ 'form.updateExhibitor' | translate }}
       </button>
     </mat-dialog-actions>
   </form>

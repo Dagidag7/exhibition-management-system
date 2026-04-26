@@ -1,0 +1,90 @@
+<div class="dialog-container">
+  <h2 mat-dialog-title>Edit {{ getUserTypeLabel() }}</h2>
+  
+  <mat-dialog-content>
+    <form [formGroup]="userForm" class="user-form">
+      <!-- Basic Information -->
+      <div class="form-section">
+        <h3>Basic Information</h3>
+        
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>{{ shouldShowExhibitorFields() ? 'Company Name' : 'Full Name' }}</mat-label>
+          <input matInput formControlName="name" placeholder="Enter {{ shouldShowExhibitorFields() ? 'company name' : 'full name' }}" required maxlength="100">
+          <mat-error *ngIf="userForm.get('name')?.hasError('required')">
+            {{ shouldShowExhibitorFields() ? 'Company name' : 'Name' }} is required
+          </mat-error>
+          <mat-error *ngIf="userForm.get('name')?.hasError('maxlength')">
+            {{ shouldShowExhibitorFields() ? 'Company name' : 'Name' }} cannot exceed 100 characters
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Email</mat-label>
+          <input matInput formControlName="email" placeholder="Enter email address" required type="email">
+          <mat-error *ngIf="userForm.get('email')?.hasError('required')">
+            Email is required
+          </mat-error>
+          <mat-error *ngIf="userForm.get('email')?.hasError('email')">
+            Please enter a valid email address
+          </mat-error>
+        </mat-form-field>
+
+        <!-- Phone field removed for exhibitors -->
+        <mat-form-field *ngIf="!shouldShowExhibitorFields()" appearance="outline" class="full-width">
+          <mat-label>Phone Number</mat-label>
+          <input matInput formControlName="phone" placeholder="Enter phone number" maxlength="20">
+        </mat-form-field>
+      </div>
+
+      <!-- Exhibitor-specific fields -->
+      <div *ngIf="shouldShowExhibitorFields()" class="form-section">
+        <h3>Exhibitor Information</h3>
+        
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Contact Person</mat-label>
+          <input matInput formControlName="contactPerson" placeholder="Enter contact person name" maxlength="100">
+        </mat-form-field>
+
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="half-width">
+            <mat-label>Booth Number</mat-label>
+            <input matInput formControlName="boothNumber" placeholder="Enter booth number" maxlength="20">
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="half-width">
+            <mat-label>Floor Number</mat-label>
+            <input matInput formControlName="floorNumber" placeholder="Enter floor number" maxlength="10">
+          </mat-form-field>
+        </div>
+      </div>
+
+      <!-- Status -->
+      <div class="form-section">
+        <h3>Account Status</h3>
+        
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Status</mat-label>
+          <mat-select formControlName="status" required>
+            <mat-option value="active">Active</mat-option>
+            <mat-option value="inactive">Inactive</mat-option>
+          </mat-select>
+          <mat-error *ngIf="userForm.get('status')?.hasError('required')">
+            Status is required
+          </mat-error>
+        </mat-form-field>
+      </div>
+    </form>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button type="button" (click)="onCancel()" [disabled]="loading">
+      Cancel
+    </button>
+    <button mat-raised-button color="primary" (click)="onSubmit()" [disabled]="userForm.invalid || loading">
+      <mat-icon *ngIf="loading">refresh</mat-icon>
+      {{ loading ? 'Updating...' : 'Update' }} {{ getUserTypeLabel() }}
+    </button>
+  </mat-dialog-actions>
+</div>
+
+

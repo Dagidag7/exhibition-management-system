@@ -10,6 +10,8 @@ export interface Attendee {
   password: string;
   registrationDate?: string;
   status?: string;
+  profilePhoto?: string;
+  paymentFee?: number;
 }
 
 @Injectable({
@@ -38,5 +40,25 @@ export class AttendeeService {
 
   deleteAttendee(id: number): Observable<any> {
     return this.http.delete(`${this.apiUrl}/${id}`);
+  }
+
+  createPayment(amount: number) {
+    return this.http.post(`${this.apiUrl}/api/payment` , { amount });
+  }
+
+  resetPassword(email: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/reset-password`, { email });
+  }
+
+  changePassword(id: number, password: string): Observable<any> {
+    return this.http.put(`${this.apiUrl}/${id}/password`, { password });
+  }
+
+  updatePaymentFee(email: string, paymentFee: number): Observable<any> {
+    return this.http.put(`${this.apiUrl}/payment-fee`, { email, paymentFee });
+  }
+
+  downloadReceipt(id: number): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/${id}/receipt`, { responseType: 'blob' });
   }
 } 

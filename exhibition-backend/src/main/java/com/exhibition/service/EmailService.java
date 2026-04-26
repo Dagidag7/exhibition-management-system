@@ -1,0 +1,333 @@
+package com.exhibition.service;
+
+import java.util.Properties;
+import jakarta.mail.Message;
+import jakarta.mail.MessagingException;
+import jakarta.mail.PasswordAuthentication;
+import jakarta.mail.Session;
+import jakarta.mail.Transport;
+import jakarta.mail.internet.InternetAddress;
+import jakarta.mail.internet.MimeMessage;
+import com.sendgrid.*;
+import com.sendgrid.helpers.mail.Mail;
+import com.sendgrid.helpers.mail.objects.Content;
+import com.sendgrid.helpers.mail.objects.Email;
+import java.io.IOException;
+
+public class EmailService {
+
+	public static class EmailDeliveryException extends RuntimeException {
+		public EmailDeliveryException(String message) {
+			super(message);
+		}
+
+		public EmailDeliveryException(String message, Throwable cause) {
+			super(message, cause);
+		}
+	}
+
+	private final String emailProvider;
+	private final String smtpHost;
+	private final int smtpPort;
+	private final String smtpUsername;
+	private final String smtpPassword;
+	private final String fromAddress;
+	private final String fromName;
+	private final boolean useTls;
+	private final String sendGridApiKey;
+
+	public static String getConfig(String key) {
+		String value = System.getProperty(key);
+		if (value == null || value.isBlank()) {
+			value = System.getenv(key);
+		}
+		return value != null ? value.trim() : null;
+	}
+
+	public static int getIntConfig(String key, int defaultValue) {
+		String value = getConfig(key);
+		if (value == null || value.isBlank()) {
+			return defaultValue;
+		}
+		try {
+			return Integer.parseInt(value);
+		} catch (NumberFormatException ignored) {
+			return defaultValue;
+		}
+	}
+
+	public EmailService(String smtpHost, int smtpPort, String smtpUsername, String smtpPassword, String fromAddress, boolean useTls) {
+		// Determine email provider from environment
+		String provider = getConfig("EMAIL_PROVIDER");
+		this.emailProvider = (provider != null && !provider.isBlank()) ? provider.toLowerCase() : "smtp";
+		
+		// SMTP configuration
+		this.smtpHost = smtpHost;
+		this.smtpPort = smtpPort;
+		this.smtpUsername = smtpUsername;
+		this.smtpPassword = smtpPassword;
+		this.useTls = useTls;
+		
+		// SendGrid configuration
+		String apiKey = getConfig("SENDGRID_API_KEY");
+		this.sendGridApiKey = apiKey;
+		
+		String sendGridFromEmail = getConfig("SENDGRID_FROM_EMAIL");
+		this.fromAddress = "sendgrid".equals(this.emailProvider)
+			? firstNonBlank(sendGridFromEmail, fromAddress, smtpUsername)
+			: firstNonBlank(fromAddress, smtpUsername);
+		String name = getConfig("SENDGRID_FROM_NAME");
+		this.fromName = (name != null && !name.isBlank()) ? name : "Exhibition Admin";
+		
+		System.out.println("=".repeat(60));
+		System.out.println("EmailService initialized");
+		System.out.println("  Provider: " + this.emailProvider);
+		if ("sendgrid".equals(this.emailProvider)) {
+			System.out.println("  SendGrid API Key: " + (sendGridApiKey != null ? "Configured" : "NOT CONFIGURED"));
+			System.out.println("  From: " + fromName + " <" + fromAddress + ">");
+		} else {
+			System.out.println("  SMTP Host: " + smtpHost);
+			System.out.println("  SMTP Port: " + smtpPort);
+			System.out.println("  SMTP User: " + smtpUsername);
+			System.out.println("  From: " + fromAddress);
+		}
+		System.out.println("=".repeat(60));
+	}
+
+	public void sendWelcomePassword(String recipientEmail, String companyName, String password) {
+		String subject = "Welcome to the Exhibition Platform";
+		String body = "Hello " + (companyName == null ? "Exhibitor" : companyName) + ",\n\n"
+			+ "Your account has been created successfully.\n"
+			+ "You can log in with the following temporary password:\n\n"
+			+ "Password: " + password + "\n\n"
+			+ "For security, please log in and change your password as soon as possible.\n\n"
+			+ "Best regards,\nExhibition Admin";
+
+		sendEmail(recipientEmail, subject, body);
+	}
+
+	public void sendPasswordChanged(String recipientEmail, String companyName, String password) {
+		String subject = "Your Exhibitor Password Has Been Updated";
+		String body = "Hello " + (companyName == null ? "Exhibitor" : companyName) + ",\n\n"
+			+ "Your account password has been set/updated by the administrator.\n\n"
+			+ "New Password: " + password + "\n\n"
+			+ "If you did not expect this change, please contact support immediately.\n\n"
+			+ "Best regards,\nExhibition Admin";
+
+		sendEmail(recipientEmail, subject, body);
+	}
+
+	public void sendAttendeePasswordReset(String recipientEmail, String attendeeName, String newPassword) {
+		String subject = "Your Exhibition Account Password Reset";
+		String body = "Hello " + (attendeeName == null ? "Attendee" : attendeeName) + ",\n\n"
+			+ "You requested a password reset for your exhibition account.\n\n"
+			+ "Your new temporary password is: " + newPassword + "\n\n"
+			+ "Please log in with this password and change it to something secure as soon as possible.\n\n"
+			+ "If you did not request this password reset, please contact support immediately.\n\n"
+			+ "Best regards,\nExhibition Team";
+
+		sendEmail(recipientEmail, subject, body);
+	}
+
+	public void sendExhibitorPasswordReset(String recipientEmail, String companyName, String newPassword) {
+		String subject = "Your Exhibitor Account Password Reset";
+		String body = "Hello " + (companyName == null ? "Exhibitor" : companyName) + ",\n\n"
+			+ "You requested a password reset for your exhibitor account.\n\n"
+			+ "Your new temporary password is: " + newPassword + "\n\n"
+			+ "Please log in with this password and change it to something secure as soon as possible.\n\n"
+			+ "If you did not request this password reset, please contact support immediately.\n\n"
+			+ "Best regards,\nExhibition Team";
+
+		sendEmail(recipientEmail, subject, body);
+	}
+
+	public void sendAttendeeRegistrationReceipt(String recipientEmail, String name, String phone, Double amount, String paymentIntentId) {
+		String receiptId = paymentIntentId != null && !paymentIntentId.isEmpty()
+			? paymentIntentId.replace("pi_", "RCP-").substring(0, Math.min(20, paymentIntentId.length()))
+			: "RCP-" + System.currentTimeMillis();
+		String amountStr = amount != null ? String.format("%.2f", amount) : "0.00";
+
+		String subject = "Exhibition Registration Receipt";
+		String body = "EXHIBITION REGISTRATION RECEIPT\n"
+			+ "================================\n\n"
+			+ "Receipt ID: " + receiptId + "\n\n"
+			+ "Attendee Information:\n"
+			+ "  Name:  " + (name == null ? "" : name) + "\n"
+			+ "  Email: " + (recipientEmail == null ? "" : recipientEmail) + "\n"
+			+ "  Phone: " + (phone == null ? "" : phone) + "\n\n"
+			+ "Payment Information:\n"
+			+ "  Amount Paid: $" + amountStr + "\n"
+			+ "  Payment ID: " + (paymentIntentId == null ? "" : paymentIntentId) + "\n\n"
+			+ "This receipt confirms your registration and payment. Present this at the exhibition entrance.\n\n"
+			+ "Best regards,\nExhibition Team";
+
+		sendEmail(recipientEmail, subject, body);
+	}
+
+	public void sendExhibitorPaymentRequest(String recipientEmail, String companyName, String paymentLink) {
+		String subject = "Exhibitor Registration Payment Request";
+		String body = "Dear " + (companyName == null || companyName.isEmpty() ? "Exhibitor" : companyName) + ",\n\n"
+			+ "Thank you for registering as an exhibitor for our exhibition.\n\n"
+			+ "To complete your registration, please process your payment using the secure link below:\n\n"
+			+ paymentLink + "\n\n"
+			+ "Once payment is confirmed, your booth assignment and additional details will be sent to you.\n\n"
+			+ "If you have any questions or need assistance, please reply to this email.\n\n"
+			+ "Best regards,\nExhibition Admin Team";
+
+		sendEmail(recipientEmail, subject, body);
+	}
+
+	public void sendEmail(String recipientEmail, String subject, String body) {
+		System.out.println("=".repeat(60));
+		System.out.println("EmailService: Attempting to send email");
+		System.out.println("  Provider: " + emailProvider);
+		System.out.println("  To: " + recipientEmail);
+		System.out.println("  Subject: " + subject);
+		System.out.println("=".repeat(60));
+		
+		if ("sendgrid".equals(emailProvider)) {
+			sendViaSendGrid(recipientEmail, subject, body);
+		} else {
+			sendViaSMTP(recipientEmail, subject, body);
+		}
+	}
+
+	private void sendViaSendGrid(String recipientEmail, String subject, String body) {
+		if (sendGridApiKey == null || sendGridApiKey.isBlank()) {
+			System.err.println("=".repeat(60));
+			System.err.println("SendGrid API key not configured. Falling back to SMTP.");
+			System.err.println("=".repeat(60));
+			if (smtpHost == null || smtpHost.isBlank()) {
+				throw new EmailDeliveryException("SENDGRID_API_KEY is not configured and no SMTP fallback is available.");
+			}
+			sendViaSMTP(recipientEmail, subject, body);
+			return;
+		}
+
+		try {
+			Email from = new Email(fromAddress, fromName);
+			Email to = new Email(recipientEmail);
+			Content content = new Content("text/plain", body);
+			Mail mail = new Mail(from, subject, to, content);
+
+			SendGrid sg = new SendGrid(sendGridApiKey);
+			Request request = new Request();
+			request.setMethod(Method.POST);
+			request.setEndpoint("mail/send");
+			request.setBody(mail.build());
+			
+			Response response = sg.api(request);
+			
+			if (response.getStatusCode() >= 200 && response.getStatusCode() < 300) {
+				System.out.println("=".repeat(60));
+				System.out.println("SendGrid: EMAIL SENT SUCCESSFULLY");
+				System.out.println("  To: " + recipientEmail);
+				System.out.println("  Subject: " + subject);
+				System.out.println("  Status Code: " + response.getStatusCode());
+				System.out.println("=".repeat(60));
+			} else {
+				System.err.println("=".repeat(60));
+				System.err.println("SendGrid: EMAIL SEND FAILED");
+				System.err.println("  To: " + recipientEmail);
+				System.err.println("  Status Code: " + response.getStatusCode());
+				System.err.println("  Response Body: " + response.getBody());
+				System.err.println("=".repeat(60));
+				throw new EmailDeliveryException("SendGrid rejected the email with status " + response.getStatusCode() + ".");
+			}
+		} catch (IOException e) {
+			System.err.println("=".repeat(60));
+			System.err.println("SendGrid: EMAIL SEND EXCEPTION");
+			System.err.println("  To: " + recipientEmail);
+			System.err.println("  Error: " + e.getMessage());
+			System.err.println("  Falling back to SMTP...");
+			System.err.println("=".repeat(60));
+			e.printStackTrace();
+			// Fallback to SMTP if SendGrid fails
+			sendViaSMTP(recipientEmail, subject, body);
+		}
+	}
+
+	private void sendViaSMTP(String recipientEmail, String subject, String body) {
+		if (smtpHost == null || smtpHost.isBlank() || fromAddress == null || fromAddress.isBlank()) {
+			throw new EmailDeliveryException("SMTP is not fully configured. Set SMTP_HOST and SMTP_FROM before sending email.");
+		}
+		if (smtpUsername == null || smtpUsername.isBlank() || smtpPassword == null || smtpPassword.isBlank()) {
+			throw new EmailDeliveryException("SMTP authentication is not configured. Set SMTP_USER and SMTP_PASSWORD.");
+		}
+
+		Properties props = new Properties();
+		props.put("mail.smtp.auth", "true");
+		props.put("mail.smtp.starttls.enable", String.valueOf(useTls));
+		props.put("mail.smtp.starttls.required", String.valueOf(useTls));
+		props.put("mail.smtp.host", smtpHost);
+		props.put("mail.smtp.port", String.valueOf(smtpPort));
+		// Trust the configured SMTP host and force modern TLS
+		props.put("mail.smtp.ssl.trust", smtpHost);
+		props.put("mail.smtp.ssl.protocols", "TLSv1.2 TLSv1.3");
+		props.put("mail.smtp.connectiontimeout", "15000");
+		props.put("mail.smtp.timeout", "20000");
+		props.put("mail.smtp.writetimeout", "15000");
+
+		Session session = Session.getInstance(props, new jakarta.mail.Authenticator() {
+			@Override
+			protected PasswordAuthentication getPasswordAuthentication() {
+				if (smtpUsername == null || smtpUsername.isBlank()) {
+					return null;
+				}
+				return new PasswordAuthentication(smtpUsername, smtpPassword);
+			}
+		});
+
+		try {
+			Message message = new MimeMessage(session);
+			message.setFrom(new InternetAddress(fromAddress));
+			message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(recipientEmail));
+			message.setSubject(subject);
+			message.setText(body);
+			
+			System.out.println("SMTP: Connecting to server...");
+			Transport.send(message);
+			System.out.println("=".repeat(60));
+			System.out.println("SMTP: EMAIL SENT SUCCESSFULLY");
+			System.out.println("  To: " + recipientEmail);
+			System.out.println("  Subject: " + subject);
+			System.out.println("=".repeat(60));
+		} catch (MessagingException e) {
+			System.err.println("=".repeat(60));
+			System.err.println("SMTP: EMAIL SEND FAILED");
+			System.err.println("  To: " + recipientEmail);
+			System.err.println("  Subject: " + subject);
+			System.err.println("  Error: " + e.getMessage());
+			System.err.println("  ");
+			System.err.println("  SOLUTIONS:");
+			if (smtpHost.toLowerCase().contains("brevo")) {
+				System.err.println("  1. In Brevo, use your SMTP login email as SMTP_USER");
+				System.err.println("  2. In Brevo, use an SMTP key as SMTP_PASSWORD");
+				System.err.println("  3. If the key was regenerated or lost, create a new SMTP key and update .env");
+			} else {
+				System.err.println("  1. Use SendGrid: Set EMAIL_PROVIDER=sendgrid and configure SENDGRID_API_KEY");
+				System.err.println("  2. For Gmail SMTP, generate a new app password and set SMTP_PASSWORD");
+				System.err.println("  3. Verify SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASSWORD, and SMTP_FROM");
+			}
+			System.err.println("=".repeat(60));
+			e.printStackTrace();
+			throw new EmailDeliveryException(buildSmtpFailureMessage(), e);
+		}
+	}
+
+	private static String firstNonBlank(String... values) {
+		for (String value : values) {
+			if (value != null && !value.isBlank()) {
+				return value.trim();
+			}
+		}
+		return null;
+	}
+
+	private String buildSmtpFailureMessage() {
+		if (smtpHost != null && smtpHost.toLowerCase().contains("brevo")) {
+			return "Brevo SMTP authentication failed. Check SMTP_USER and SMTP_PASSWORD in .env and make sure the password is a valid Brevo SMTP key.";
+		}
+		return "SMTP authentication failed. Check SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASSWORD, and SMTP_FROM.";
+	}
+}

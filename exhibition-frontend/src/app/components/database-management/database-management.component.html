@@ -1,241 +1,53 @@
-<div class="database-management-container">
-  <!-- Header Section -->
-  <div class="header-section">
-    <div class="header-content">
-      <h1>Database Management</h1>
-      <p>Secure database operations and monitoring</p>
-      <button mat-raised-button color="primary" (click)="refreshAll()" [disabled]="loading.health || loading.stats">
-        <mat-icon>refresh</mat-icon>
-        Refresh All
-      </button>
+<div class="content-section">
+  <div class="section-header">
+    <h2 class="section-title">{{ 'database.users' | translate }}</h2>
+    <button class="add-button" (click)="loadUsers()" [disabled]="loading">
+      <mat-icon>refresh</mat-icon>
+      {{ 'common.refresh' | translate }}
+    </button>
+  </div>
+
+  <div *ngIf="loading" class="loading-section">
+    <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+    <p>{{ 'database.loadingUsers' | translate }}</p>
+  </div>
+
+  <div *ngIf="!loading">
+    <div *ngIf="users.length === 0" class="empty-state">
+      <mat-icon>people_outline</mat-icon>
+      <h3>{{ 'database.noUsersFound' | translate }}</h3>
+      <p>{{ 'database.noUsersMessage' | translate }}</p>
     </div>
-  </div>
 
-  <!-- Database Status Grid -->
-  <div class="status-grid">
-    <!-- Database Health Card -->
-    <mat-card class="status-card health-card">
-      <mat-card-header>
-        <mat-card-title>
-          <mat-icon [color]="databaseHealth?.status === 'healthy' ? 'accent' : 'warn'">
-            {{ databaseHealth?.status === 'healthy' ? 'check_circle' : 'error' }}
-          </mat-icon>
-          Database Health
-        </mat-card-title>
-      </mat-card-header>
-      <mat-card-content>
-        <div *ngIf="loading.health" class="loading-section">
-          <mat-progress-bar mode="indeterminate"></mat-progress-bar>
-          <p>Checking database health...</p>
-        </div>
-        <div *ngIf="!loading.health && databaseHealth" class="health-info">
-          <div class="health-item">
-            <strong>Status:</strong>
-            <mat-chip [color]="getStatusColor(databaseHealth.status)" selected>
-              {{ databaseHealth.status }}
-            </mat-chip>
-          </div>
-          <div class="health-item">
-            <strong>Database:</strong>
-            <span>{{ databaseHealth.database }}</span>
-          </div>
-          <div class="health-item">
-            <strong>Version:</strong>
-            <span>{{ databaseHealth.version }}</span>
-          </div>
-          <div class="health-item">
-            <strong>Last Check:</strong>
-            <span>{{ formatTimestamp(databaseHealth.timestamp) }}</span>
-          </div>
-        </div>
-      </mat-card-content>
-    </mat-card>
+    <table *ngIf="users.length > 0" mat-table [dataSource]="users" class="mat-table">
+      <ng-container matColumnDef="id">
+        <th mat-header-cell *matHeaderCellDef>{{ 'database.id' | translate }}</th>
+        <td mat-cell *matCellDef="let user">{{ user.id || user.exhibitorId || user.attendeeId }}</td>
+      </ng-container>
 
-    <!-- Database Statistics Card -->
-    <mat-card class="status-card stats-card">
-      <mat-card-header>
-        <mat-card-title>
-          <mat-icon color="primary">analytics</mat-icon>
-          Database Statistics
-        </mat-card-title>
-      </mat-card-header>
-      <mat-card-content>
-        <div *ngIf="loading.stats" class="loading-section">
-          <mat-progress-bar mode="indeterminate"></mat-progress-bar>
-          <p>Loading statistics...</p>
-        </div>
-        <div *ngIf="!loading.stats && databaseStats" class="stats-grid">
-          <div class="stat-item">
-            <span class="stat-label">Attendees:</span>
-            <span class="stat-value">{{ databaseStats.attendeeCount }}</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-label">Exhibitors:</span>
-            <span class="stat-value">{{ databaseStats.exhibitorCount }}</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-label">Sponsors:</span>
-            <span class="stat-value">{{ databaseStats.sponsorCount }}</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-label">Partners:</span>
-            <span class="stat-value">{{ databaseStats.partnerCount }}</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-label">Floors:</span>
-            <span class="stat-value">{{ databaseStats.floorCount }}</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-label">Products:</span>
-            <span class="stat-value">{{ databaseStats.productCount }}</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-label">Speakers:</span>
-            <span class="stat-value">{{ databaseStats.speakerCount }}</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-label">Conferences:</span>
-            <span class="stat-value">{{ databaseStats.conferenceCount }}</span>
-          </div>
-        </div>
-      </mat-card-content>
-    </mat-card>
-  </div>
+      <ng-container matColumnDef="name">
+        <th mat-header-cell *matHeaderCellDef>{{ 'database.name' | translate }}</th>
+        <td mat-cell *matCellDef="let user">{{ user.name || user.companyName }}</td>
+      </ng-container>
 
-  <!-- Database Operations Section -->
-  <div class="operations-section">
-    <mat-card class="operations-card">
-      <mat-card-header>
-        <mat-card-title>
-          <mat-icon color="primary">build</mat-icon>
-          Database Operations
-        </mat-card-title>
-        <mat-card-subtitle>Safe database management operations</mat-card-subtitle>
-      </mat-card-header>
-      <mat-card-content>
-        
-        <!-- Conference Schema Management -->
-        <div class="operation-group">
-          <h3>Conference Table Schema</h3>
-          <div *ngIf="loading.schema" class="loading-section">
-            <mat-progress-bar mode="indeterminate"></mat-progress-bar>
-            <p>Loading conference schema...</p>
-          </div>
-          
-          <div *ngIf="!loading.schema && conferenceSchema" class="schema-info">
-            <div class="schema-header">
-              <strong>Table: {{ conferenceSchema.tableName }}</strong>
-              <span class="column-count">{{ conferenceSchema.columns.length }} columns</span>
-            </div>
-            
-            <div class="columns-list">
-              <div *ngFor="let column of conferenceSchema.columns" class="column-item">
-                <div class="column-name">{{ column.name }}</div>
-                <div class="column-details">
-                  <mat-chip size="small">{{ column.type }}</mat-chip>
-                  <mat-chip *ngIf="column.nullable" size="small" color="accent">nullable</mat-chip>
-                  <span *ngIf="column.default" class="default-value">default: {{ column.default }}</span>
-                </div>
-              </div>
-            </div>
-          </div>
+      <ng-container matColumnDef="email">
+        <th mat-header-cell *matHeaderCellDef>{{ 'database.email' | translate }}</th>
+        <td mat-cell *matCellDef="let user">{{ user.email }}</td>
+      </ng-container>
 
-          <!-- Schema Update Form -->
-          <div class="schema-update-form">
-            <h4>Update Schema</h4>
-            <form [formGroup]="schemaUpdateForm" class="update-form">
-              <div class="form-row">
-                <mat-checkbox formControlName="addLocation" color="primary">
-                  Add Location Column (VARCHAR(255))
-                </mat-checkbox>
-              </div>
-              <div class="form-row">
-                <mat-checkbox formControlName="addTime" color="primary">
-                  Add Time Column (VARCHAR(50))
-                </mat-checkbox>
-              </div>
-              <div class="form-actions">
-                <button mat-raised-button color="primary" 
-                        (click)="updateConferenceSchema()" 
-                        [disabled]="loading.update || (!schemaUpdateForm.value.addLocation && !schemaUpdateForm.value.addTime)">
-                  <mat-icon>update</mat-icon>
-                  {{ loading.update ? 'Updating...' : 'Update Schema' }}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+      <ng-container matColumnDef="role">
+        <th mat-header-cell *matHeaderCellDef>{{ 'database.role' | translate }}</th>
+        <td mat-cell *matCellDef="let user">
+          <span class="status-badge" [class.status-exhibitor]="getUserRole(user) === 'Exhibitor'" [class.status-attendee]="getUserRole(user) === 'Attendee'" [class.status-admin]="getUserRole(user) === 'Admin'">
+            {{ getTranslatedRole(user) }}
+          </span>
+        </td>
+      </ng-container>
 
-        <mat-divider></mat-divider>
 
-        <!-- Sample Data Management -->
-        <div class="operation-group">
-          <h3>Sample Data Management</h3>
-          <p>Add sample conference data to the database for testing purposes.</p>
-          
-          <div class="sample-data-actions">
-            <button mat-raised-button color="accent" 
-                    (click)="addSampleConferences()" 
-                    [disabled]="loading.sample">
-              <mat-icon>add_circle</mat-icon>
-              {{ loading.sample ? 'Adding...' : 'Add Sample Conferences' }}
-            </button>
-          </div>
-        </div>
 
-        <mat-divider></mat-divider>
-
-        <!-- Database Tables -->
-        <div class="operation-group">
-          <h3>Database Tables</h3>
-          <div *ngIf="loading.tables" class="loading-section">
-            <mat-progress-bar mode="indeterminate"></mat-progress-bar>
-            <p>Loading tables...</p>
-          </div>
-          
-          <div *ngIf="!loading.tables && allTables.length > 0" class="tables-list">
-            <div *ngFor="let table of allTables" class="table-item">
-              <mat-icon color="primary">table_chart</mat-icon>
-              <span>{{ table }}</span>
-            </div>
-          </div>
-        </div>
-
-      </mat-card-content>
-    </mat-card>
-  </div>
-
-  <!-- Recent Operations Section -->
-  <div class="recent-operations-section">
-    <mat-card class="recent-operations-card">
-      <mat-card-header>
-        <mat-card-title>
-          <mat-icon color="primary">history</mat-icon>
-          Recent Operations
-        </mat-card-title>
-        <mat-card-subtitle>Log of recent database operations</mat-card-subtitle>
-      </mat-card-header>
-      <mat-card-content>
-        <div *ngIf="recentOperations.length === 0" class="no-operations">
-          <mat-icon color="disabled">info</mat-icon>
-          <p>No recent operations</p>
-        </div>
-        
-        <div *ngIf="recentOperations.length > 0" class="operations-list">
-          <div *ngFor="let operation of recentOperations" class="operation-item">
-            <div class="operation-header">
-              <mat-icon [color]="getOperationColor(operation.success)">
-                {{ getOperationIcon(operation.success) }}
-              </mat-icon>
-              <span class="operation-action">{{ operation.action }}</span>
-              <span class="operation-time">{{ formatTimestamp(operation.timestamp) }}</span>
-            </div>
-            <div class="operation-message">
-              {{ operation.message }}
-            </div>
-          </div>
-        </div>
-      </mat-card-content>
-    </mat-card>
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+    </table>
   </div>
 </div> 

@@ -1,2 +1,46 @@
-.full-width { width: 100%; }
-form { min-width: 300px; }
+.dialog-container {
+  padding: 20px;
+  min-width: 400px;
+  max-width: 500px;
+}
+
+.form-row {
+  margin-bottom: 16px;
+}
+
+.full-width {
+  width: 100%;
+}
+
+mat-form-field {
+  width: 100%;
+}
+
+mat-dialog-content {
+  max-height: 60vh;
+  overflow-y: auto;
+  padding: 0 4px;
+}
+
+mat-dialog-actions {
+  padding-top: 16px;
+  margin-bottom: 0;
+  border-top: 1px solid #e0e0e0;
+}
+
+mat-dialog-actions button {
+  margin-left: 10px;
+}
+
+h2[mat-dialog-title] {
+  margin: 0 0 16px 0;
+  color: #333;
+  font-weight: 500;
+}
+
+@media (max-width: 600px) {
+  .dialog-container {
+    min-width: 280px;
+    padding: 15px;
+  }
+}

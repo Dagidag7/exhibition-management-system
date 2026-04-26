@@ -14,6 +14,7 @@ public class ConferenceController {
         router.get("/conferences/:id").handler(ctx -> getConferenceById(ctx, conferenceService));
         router.put("/conferences/:id").handler(ctx -> updateConference(ctx, conferenceService));
         router.delete("/conferences/:id").handler(ctx -> deleteConference(ctx, conferenceService));
+        router.post("/conferences/clear-speaker").handler(ctx -> clearSpeakerFromConferences(ctx, conferenceService));
     }
 
     private static void createConference(RoutingContext ctx, ConferenceService conferenceService) {
@@ -123,6 +124,37 @@ public class ConferenceController {
                 ctx.response()
                     .putHeader("content-type", "application/json")
                     .end("{\"message\": \"Conference deleted successfully\"}");
+            } else {
+                ctx.response()
+                    .setStatusCode(500)
+                    .putHeader("content-type", "application/json")
+                    .end("{\"error\": \"" + res.cause().getMessage() + "\"}");
+            }
+        });
+    }
+
+    private static void clearSpeakerFromConferences(RoutingContext ctx, ConferenceService conferenceService) {
+        io.vertx.core.json.JsonObject body = ctx.getBodyAsJson();
+        if (body == null || !body.containsKey("speakerName")) {
+            ctx.response()
+                .setStatusCode(400)
+                .putHeader("content-type", "application/json")
+                .end("{\"error\": \"speakerName is required\"}");
+            return;
+        }
+        String speakerName = body.getString("speakerName");
+        if (speakerName == null || speakerName.trim().isEmpty()) {
+            ctx.response()
+                .setStatusCode(400)
+                .putHeader("content-type", "application/json")
+                .end("{\"error\": \"speakerName cannot be empty\"}");
+            return;
+        }
+        conferenceService.clearSpeakerFromConferences(speakerName.trim(), res -> {
+            if (res.succeeded()) {
+                ctx.response()
+                    .putHeader("content-type", "application/json")
+                    .end("{\"message\": \"Speaker cleared from conferences successfully\"}");
             } else {
                 ctx.response()
                     .setStatusCode(500)

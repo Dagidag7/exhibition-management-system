@@ -6,6 +6,7 @@ export interface Partner {
   partnerId: number;
   name: string;
   contactPerson: string;
+  email?: string;
   partnershipType: string;
   benefits?: string;
 }

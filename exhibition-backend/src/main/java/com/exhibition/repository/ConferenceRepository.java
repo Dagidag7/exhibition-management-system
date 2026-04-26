@@ -11,4 +11,7 @@ public interface ConferenceRepository {
     void getConference(int id, Handler<AsyncResult<Conference>> resultHandler);
     void updateConference(Conference conference, Handler<AsyncResult<Void>> resultHandler);
     void deleteConference(int id, Handler<AsyncResult<Void>> resultHandler);
+    void isFloorConferenceTaken(String floorNumber, Integer excludeConferenceId, Handler<AsyncResult<Boolean>> resultHandler);
+    void isSpeakerAssignedToConference(String speakerName, Integer excludeConferenceId, Handler<AsyncResult<Boolean>> resultHandler);
+    void clearSpeakerFromConferences(String speakerName, Handler<AsyncResult<Void>> resultHandler);
 }

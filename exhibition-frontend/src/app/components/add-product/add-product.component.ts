@@ -10,6 +10,9 @@ import { MatIconModule } from '@angular/material/icon';
 import { ProductService, Product } from '../../services/product.service';
 import { ExhibitorService, Exhibitor } from '../../services/exhibitor.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { ValidationService } from '../../services/validation.service';
+import { ImageUploadComponent } from '../image-upload/image-upload.component';
+import { TranslatePipe } from '../../pipes/translate.pipe';
 
 @Component({
   selector: 'app-add-product',
@@ -22,7 +25,9 @@ import { MatSnackBar } from '@angular/material/snack-bar';
     MatInputModule,
     MatButtonModule,
     MatSelectModule,
-    MatIconModule
+    MatIconModule,
+    ImageUploadComponent,
+    TranslatePipe
   ],
   templateUrl: './add-product.component.html',
   styleUrls: ['./add-product.component.css']
@@ -32,54 +37,54 @@ export class AddProductComponent implements OnInit {
   isEditMode: boolean = false;
   productId?: number;
   exhibitors: Exhibitor[] = [];
+  /** When true, exhibitor field is hidden - used in exhibitor dashboard where product belongs to current exhibitor only */
+  hideExhibitorField = false;
 
   constructor(
     private fb: FormBuilder,
     private productService: ProductService,
     private exhibitorService: ExhibitorService,
+    private validationService: ValidationService,
     private snackBar: MatSnackBar,
     public dialogRef: MatDialogRef<AddProductComponent>,
     @Inject(MAT_DIALOG_DATA) public data: any
   ) {
+    this.hideExhibitorField = !!data?.fromExhibitorDashboard;
+    const exhibitorId = data?.exhibitorId ?? data?.product?.exhibitorId ?? null;
+    const exhibitorValidators = this.hideExhibitorField ? [] : [Validators.required];
     this.productForm = this.fb.group({
       name: ['', [Validators.required, Validators.maxLength(100)]],
       description: [''],
-      exhibitorId: ['', [Validators.required]],
       category: ['', [Validators.maxLength(50)]],
-      imageUrl: ['']
+      imageUrl: [''],
+      exhibitorId: [exhibitorId, exhibitorValidators]
     });
   }
 
+
   ngOnInit(): void {
-    this.loadExhibitors();
-    
+    if (!this.hideExhibitorField) {
+      this.exhibitorService.getExhibitors().subscribe({
+        next: (list) => this.exhibitors = list,
+        error: () => this.snackBar.open('Could not load exhibitors', 'Close', { duration: 3000 })
+      });
+    }
     if (this.data && this.data.product) {
       this.isEditMode = true;
       this.productId = this.data.product.productId;
       this.productForm.patchValue({
         name: this.data.product.name,
         description: this.data.product.description || '',
-        exhibitorId: this.data.product.exhibitorId,
         category: this.data.product.category || '',
-        imageUrl: this.data.product.imageUrl || ''
+        imageUrl: this.data.product.imageUrl || '',
+        exhibitorId: this.data.product.exhibitorId
       });
+    } else if (this.data?.exhibitorId != null) {
+      this.productForm.patchValue({ exhibitorId: this.data.exhibitorId });
     }
   }
-
-  loadExhibitors(): void {
-    this.exhibitorService.getExhibitors().subscribe({
-      next: (exhibitors) => {
-        this.exhibitors = exhibitors;
-      },
-      error: (error) => {
-        console.error('Error loading exhibitors:', error);
-        this.snackBar.open('Error loading exhibitors', 'Close', { duration: 3000 });
-      }
-    });
-  }
-
   onSubmit(): void {
-    if (this.productForm.valid) {
+    if (this.validateForm()) {
       const productData = this.productForm.value;
       
       if (this.isEditMode && this.productId) {
@@ -106,6 +111,53 @@ export class AddProductComponent implements OnInit {
         });
       }
     }
+  }
+
+  validateForm(): boolean {
+    const formValue = this.productForm.value;
+
+    // Validate product name
+    const nameValidation = this.validationService.validateCompanyName(formValue.name);
+    if (!nameValidation.isValid) {
+      this.snackBar.open('Product Name: ' + nameValidation.message, 'Close', {
+        duration: 4000,
+        horizontalPosition: 'center',
+        verticalPosition: 'top'
+      });
+      return false;
+    }
+
+    // Validate category if provided
+    if (formValue.category && formValue.category.trim() !== '') {
+      const categoryValidation = this.validationService.validateCompanyName(formValue.category);
+      if (!categoryValidation.isValid) {
+        this.snackBar.open('Category: ' + categoryValidation.message, 'Close', {
+          duration: 4000,
+          horizontalPosition: 'center',
+          verticalPosition: 'top'
+        });
+        return false;
+      }
+    }
+
+    // Validate image URL if provided
+    if (formValue.imageUrl && formValue.imageUrl.trim() !== '') {
+      const urlValidation = this.validationService.validateUrl(formValue.imageUrl);
+      if (!urlValidation.isValid) {
+        this.snackBar.open(urlValidation.message, 'Close', {
+          duration: 4000,
+          horizontalPosition: 'center',
+          verticalPosition: 'top'
+        });
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  onImageUploaded(url: string) {
+    this.productForm.patchValue({ imageUrl: url });
   }
 
   onCancel(): void {

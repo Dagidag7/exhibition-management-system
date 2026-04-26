@@ -1,5 +1,5 @@
-<div class="login-container">
-  <div class="login-background">
+<div class="login-container" (click)="onBackdropClick($event)">
+  <div class="login-background" (click)="onBackdropClick($event)">
     <div class="animated-bg"></div>
     <div class="floating-shapes">
       <div class="shape shape-1"></div>
@@ -8,7 +8,7 @@
     </div>
   </div>
   
-  <div class="login-content">
+  <div class="login-content" (click)="$event.stopPropagation()">
     <div class="login-card">
       <div class="login-header">
         <div class="logo-container">
@@ -16,59 +16,78 @@
             <mat-icon>event</mat-icon>
           </div>
         </div>
-        <h1 class="welcome-text">Welcome Back</h1>
-        <p class="subtitle">Sign in to your Exhibition Account</p>
+        <h1 class="welcome-text">{{ 'login.title' | translate }}</h1>
+        <p class="subtitle">{{ 'welcome.subtitle' | translate }}</p>
       </div>
       
       <div class="login-form">
-        <form (ngSubmit)="onSubmit()" #loginForm="ngForm">
-          <div class="form-field">
-            <div class="input-container">
-              <mat-icon class="input-icon">email</mat-icon>
-              <input 
-                matInput 
-                type="email" 
-                [(ngModel)]="loginData.email" 
-                name="email"
-                placeholder="Email*"
-                required
-                autocomplete="email"
-                class="form-input">
-            </div>
-          </div>
+        <form (ngSubmit)="onSubmit($event)" #loginForm="ngForm" novalidate>
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>{{ 'login.email' | translate }}</mat-label>
+            <mat-icon matPrefix>email</mat-icon>
+            <input 
+              matInput 
+              type="email" 
+              [(ngModel)]="loginData.email" 
+              name="email"
+              #emailRef="ngModel"
+              required
+              email
+              [placeholder]="'login.email' | translate"
+              autocomplete="email">
+            <mat-error *ngIf="emailRef.invalid && emailRef.touched">
+              <span *ngIf="emailRef.errors?.['required']">{{ 'forgotPassword.emailRequired' | translate }}</span>
+              <span *ngIf="emailRef.errors?.['email']">{{ 'forgotPassword.emailInvalid' | translate }}</span>
+            </mat-error>
+          </mat-form-field>
 
-          <div class="form-field">
-            <div class="input-container">
-              <mat-icon class="input-icon">lock</mat-icon>
-              <input 
-                matInput 
-                [type]="hidePassword ? 'password' : 'text'"
-                [(ngModel)]="loginData.password" 
-                name="password"
-                placeholder="Password*"
-                required
-                autocomplete="current-password"
-                class="form-input">
-              <button 
-                mat-icon-button 
-                (click)="togglePasswordVisibility()" 
-                type="button"
-                class="password-toggle"
-                [attr.aria-label]="'Hide password'" 
-                [attr.aria-pressed]="hidePassword">
-                <mat-icon>{{hidePassword ? 'visibility_off' : 'visibility'}}</mat-icon>
-              </button>
-            </div>
-          </div>
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>{{ 'login.password' | translate }}</mat-label>
+            <mat-icon matPrefix>lock</mat-icon>
+            <input 
+              matInput 
+              [type]="hidePassword ? 'password' : 'text'"
+              [(ngModel)]="loginData.password" 
+              name="password"
+              #passwordRef="ngModel"
+              [placeholder]="'login.password' | translate"
+              required
+              autocomplete="current-password">
+            <button 
+              mat-icon-button 
+              matSuffix
+              (click)="togglePasswordVisibility()" 
+              type="button"
+              [attr.aria-label]="('login.password' | translate)" 
+              [attr.aria-pressed]="hidePassword">
+              <mat-icon>{{hidePassword ? 'visibility_off' : 'visibility'}}</mat-icon>
+            </button>
+            <mat-error *ngIf="passwordRef.invalid && passwordRef.touched">
+              {{ 'login.fillFields' | translate }}
+            </mat-error>
+          </mat-form-field>
 
           <div class="form-actions">
             <button 
               mat-raised-button 
-              type="submit"
-              [disabled]="isSubmitting || !loginForm.form.valid"
+              type="button"
+              color="primary"
+              [disabled]="isSubmitting"
+              (click)="onSubmit($event)"
               class="login-btn">
               <mat-icon *ngIf="isSubmitting" class="spinning">hourglass_empty</mat-icon>
-              <span>{{ isSubmitting ? 'Signing In...' : 'Sign In' }}</span>
+              {{ isSubmitting ? ('login.signingIn' | translate) : ('login.signIn' | translate) }}
+            </button>
+          </div>
+
+          <div class="forgot-password">
+            <button 
+              mat-button 
+              type="button"
+              (click)="openForgotPasswordDialog()"
+              class="forgot-password-btn">
+              <mat-icon>help_outline</mat-icon>
+              {{ 'login.forgotPassword' | translate }}
             </button>
           </div>
         </form>
@@ -76,8 +95,25 @@
       
       <div class="login-footer">
         <div class="footer-links">
-          <p class="register-link">Don't have an account? <a routerLink="/register">Register here</a></p>
-          <p class="forgot-link"><a routerLink="/forgot-password">Forgot your password?</a></p>
+          <div class="register-section">
+            <p class="register-text">{{ 'login.noAccount' | translate }}</p>
+            <div class="register-buttons">
+              <button 
+                mat-stroked-button 
+                (click)="goToAttendeeRegistration()"
+                class="register-btn">
+                <mat-icon>person_add</mat-icon>
+                {{ 'login.registerAttendee' | translate }}
+              </button>
+              <button 
+                mat-stroked-button 
+                (click)="goToExhibitorRegistration()"
+                class="register-btn">
+                <mat-icon>business</mat-icon>
+                {{ 'login.registerExhibitor' | translate }}
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>

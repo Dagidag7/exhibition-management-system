@@ -13,4 +13,7 @@ public interface ExhibitorService {
     void removeExhibitor(int id, Handler<AsyncResult<Void>> resultHandler);
     void updateExhibitorPassword(int exhibitorId, String password, Handler<AsyncResult<Void>> resultHandler);
     void getExhibitorByEmail(String email, Handler<AsyncResult<Exhibitor>> resultHandler);
+    void getFloorExhibitorCount(String floorNumber, Handler<AsyncResult<Integer>> resultHandler);
+    void resetExhibitorPassword(String email, Handler<AsyncResult<String>> resultHandler);
+    void sendPaymentRequestEmail(String email, String companyName, String paymentLink, Handler<AsyncResult<Void>> resultHandler);
 }

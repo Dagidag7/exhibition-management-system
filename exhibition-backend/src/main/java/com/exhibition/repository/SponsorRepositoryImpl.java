@@ -18,10 +18,11 @@ public class SponsorRepositoryImpl implements SponsorRepository {
 
     @Override
     public void addSponsor(Sponsor sponsor, Handler<AsyncResult<Void>> resultHandler) {
-        String sql = "INSERT INTO sponsor (name, contact_person, contribution_amount, benefits, logo_url) VALUES (?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO sponsor (name, contact_person, email, contribution_amount, benefits, logo_url) VALUES (?, ?, ?, ?, ?, ?)";
         JsonArray params = new JsonArray()
                 .add(sponsor.getName())
                 .add(sponsor.getContactPerson())
+                .add(sponsor.getEmail() != null ? sponsor.getEmail() : "")
                 .add(sponsor.getContributionAmount())
                 .add(sponsor.getBenefits())
                 .add(sponsor.getLogoUrl());
@@ -66,6 +67,7 @@ public class SponsorRepositoryImpl implements SponsorRepository {
                             sponsor.setSponsorId(row.getInteger("sponsor_id"));
                             sponsor.setName(row.getString("name"));
                             sponsor.setContactPerson(row.getString("contact_person"));
+                            sponsor.setEmail(row.getString("email"));
                             sponsor.setContributionAmount(row.getDouble("contribution_amount"));
                             sponsor.setBenefits(row.getString("benefits"));
                             sponsor.setLogoUrl(row.getString("logo_url"));
@@ -103,6 +105,7 @@ public class SponsorRepositoryImpl implements SponsorRepository {
                                 sponsor.setSponsorId(row.getInteger("sponsor_id"));
                                 sponsor.setName(row.getString("name"));
                                 sponsor.setContactPerson(row.getString("contact_person"));
+                                sponsor.setEmail(row.getString("email"));
                                 sponsor.setContributionAmount(row.getDouble("contribution_amount"));
                                 sponsor.setBenefits(row.getString("benefits"));
                                 sponsor.setLogoUrl(row.getString("logo_url"));
@@ -128,10 +131,11 @@ public class SponsorRepositoryImpl implements SponsorRepository {
 
     @Override
     public void updateSponsor(Sponsor sponsor, Handler<AsyncResult<Void>> resultHandler) {
-        String sql = "UPDATE sponsor SET name=?, contact_person=?, contribution_amount=?, benefits=?, logo_url=? WHERE sponsor_id=?";
+        String sql = "UPDATE sponsor SET name=?, contact_person=?, email=?, contribution_amount=?, benefits=?, logo_url=? WHERE sponsor_id=?";
         JsonArray params = new JsonArray()
                 .add(sponsor.getName())
                 .add(sponsor.getContactPerson())
+                .add(sponsor.getEmail() != null ? sponsor.getEmail() : "")
                 .add(sponsor.getContributionAmount())
                 .add(sponsor.getBenefits())
                 .add(sponsor.getLogoUrl())

@@ -12,15 +12,17 @@ public class Attendee {
     private String registrationDate;
     private String sessionIds;
     private String status;
+    private boolean isTemporaryPassword;
+    private String profilePhoto;
+    private Double paymentFee;
+    private String paymentIntentId; // Transient - for receipt email, not persisted
 
-    // Constructor that sets registration date automatically
     public Attendee() {
         this.registrationDate = LocalDate.now().format(DateTimeFormatter.ISO_DATE);
-        this.sessionIds = ""; // Empty by default
-        this.status = "active"; // Default status
+        this.sessionIds = ""; 
+        this.status = "active";
     }
 
-    // Getters and setters
     public int getAttendeeId() { return attendeeId; }
     public void setAttendeeId(int attendeeId) { this.attendeeId = attendeeId; }
 
@@ -38,8 +40,7 @@ public class Attendee {
 
     public String getRegistrationDate() { return registrationDate; }
     
-    // Keep the setter but make it package-private (only accessible within the same package)
-    void setRegistrationDate(String registrationDate) { 
+    public void setRegistrationDate(String registrationDate) { 
         this.registrationDate = registrationDate; 
     }
 
@@ -48,4 +49,16 @@ public class Attendee {
 
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
+
+    public boolean isTemporaryPassword() { return isTemporaryPassword; }
+    public void setTemporaryPassword(boolean temporaryPassword) { this.isTemporaryPassword = temporaryPassword; }
+
+    public String getProfilePhoto() { return profilePhoto; }
+    public void setProfilePhoto(String profilePhoto) { this.profilePhoto = profilePhoto; }
+
+    public Double getPaymentFee() { return paymentFee; }
+    public void setPaymentFee(Double paymentFee) { this.paymentFee = paymentFee; }
+
+    public String getPaymentIntentId() { return paymentIntentId; }
+    public void setPaymentIntentId(String paymentIntentId) { this.paymentIntentId = paymentIntentId; }
 }
