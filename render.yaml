@@ -2,7 +2,7 @@ services:
   - type: web
     name: exhibition-backend
     runtime: java
-    rootDir: exhibition-backend
+    root: exhibition-backend
     buildCommand: mvn clean package -DskipTests
     startCommand: java -jar target/exhibition-backend-1.0-SNAPSHOT-jar-with-dependencies.jar
     envVars:
@@ -28,7 +28,7 @@ services:
   - type: web
     name: exhibition-frontend
     runtime: static
-    rootDir: exhibition-frontend
+    root: exhibition-frontend
     buildCommand: npm install && npm run build -- --configuration production
     staticPublishPath: dist/exhibition-frontend/browser
     routes:
