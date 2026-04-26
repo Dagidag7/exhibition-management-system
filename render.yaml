@@ -2,8 +2,9 @@ services:
   - type: web
     name: exhibition-backend
     runtime: java
-    buildCommand: cd exhibition-backend && mvn clean package -DskipTests
-    startCommand: cd exhibition-backend && java -jar target/exhibition-backend-1.0-SNAPSHOT-jar-with-dependencies.jar
+    rootDir: exhibition-backend
+    buildCommand: mvn clean package -DskipTests
+    startCommand: java -jar target/exhibition-backend-1.0-SNAPSHOT-jar-with-dependencies.jar
     envVars:
       - key: SERVER_PORT
         value: 8888
@@ -27,8 +28,9 @@ services:
   - type: web
     name: exhibition-frontend
     runtime: static
-    buildCommand: cd exhibition-frontend && npm install && npm run build -- --configuration production
-    staticPublishPath: exhibition-frontend/dist/exhibition-frontend/browser
+    rootDir: exhibition-frontend
+    buildCommand: npm install && npm run build -- --configuration production
+    staticPublishPath: dist/exhibition-frontend/browser
     routes:
       - type: rewrite
         source: /*
