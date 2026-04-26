@@ -2,9 +2,10 @@ services:
   - type: web
     name: exhibition-backend
     runtime: java
-    rootDirectory: exhibition-backend
+    rootDir: exhibition-backend
     buildCommand: mvn clean package -DskipTests
     startCommand: java -jar target/exhibition-backend-1.0-SNAPSHOT-jar-with-dependencies.jar
+
     envVars:
       - key: SERVER_PORT
         value: 8888
@@ -25,12 +26,12 @@ services:
       - key: ADMIN_EMAIL
         value: dagimawitkelem129@gmail.com
 
-  - type: web
+  - type: static
     name: exhibition-frontend
-    runtime: static
-    rootDirectory: exhibition-frontend
+    rootDir: exhibition-frontend
     buildCommand: npm install && npm run build -- --configuration production
     staticPublishPath: dist/exhibition-frontend/browser
+
     routes:
       - type: rewrite
         source: /*
