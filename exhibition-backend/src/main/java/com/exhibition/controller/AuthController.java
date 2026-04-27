@@ -12,6 +12,7 @@ public class AuthController {
         router.route("/auth/*").handler(BodyHandler.create());
         
         router.post("/auth/login").handler(ctx -> login(ctx, authService));
+        router.post("/auth/test-login").handler(ctx -> testLogin(ctx, authService));
         router.get("/auth/me").handler(ctx -> getCurrentUser(ctx, authService));
         router.post("/auth/logout").handler(ctx -> logout(ctx, authService));
         router.post("/auth/change-password").handler(ctx -> changePassword(ctx, authService));
@@ -62,6 +63,52 @@ public class AuthController {
                 .putHeader("Content-Type", "application/json")
                 .end(new JsonObject()
                     .put("error", "Internal server error")
+                    .encode());
+        }
+    }
+    
+    private static void testLogin(RoutingContext ctx, AuthService authService) {
+        try {
+            JsonObject body = ctx.getBodyAsJson();
+            String email = body.getString("email");
+            String password = body.getString("password");
+            
+            if (email == null || password == null) {
+                ctx.response()
+                    .setStatusCode(400)
+                    .putHeader("Content-Type", "application/json")
+                    .end(new JsonObject()
+                        .put("error", "Email and password are required")
+                        .encode());
+                return;
+            }
+            
+            // This will trigger our detailed logging and return the result
+            authService.authenticateUser(email, password, result -> {
+                JsonObject response = new JsonObject();
+                if (result.succeeded()) {
+                    JsonObject userData = result.result();
+                    response.put("success", true)
+                           .put("message", "Authentication successful")
+                           .put("user", userData);
+                } else {
+                    response.put("success", false)
+                           .put("message", "Authentication failed: " + result.cause().getMessage())
+                           .put("error", result.cause().getMessage());
+                }
+                
+                ctx.response()
+                    .setStatusCode(200)
+                    .putHeader("Content-Type", "application/json")
+                    .end(response.encode());
+            });
+            
+        } catch (Exception e) {
+            ctx.response()
+                .setStatusCode(500)
+                .putHeader("Content-Type", "application/json")
+                .end(new JsonObject()
+                    .put("error", "Internal server error: " + e.getMessage())
                     .encode());
         }
     }
