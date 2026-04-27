@@ -185,6 +185,12 @@ public class MainVerticle extends AbstractVerticle {
                         String extractedHost = matcher.group(3);
                         String extractedDbName = matcher.group(4);
                         
+                        // If host doesn't have domain suffix, add it
+                        if (!extractedHost.contains(".")) {
+                            extractedHost = extractedHost + ".virginia-postgres.render.com";
+                            System.out.println("Added domain suffix to hostname: " + extractedHost);
+                        }
+                        
                         // Reconstruct as proper JDBC URL
                         dbUrl = String.format("jdbc:postgresql://%s:5432/%s", extractedHost, extractedDbName);
                         
