@@ -45,7 +45,21 @@ public class AuthServiceImpl implements AuthService {
                             if (rs.getNumRows() > 0) {
                                 JsonObject row = rs.getRows().get(0);
                                 String storedHash = row.getString("password");
-                                boolean matches = storedHash != null && cleanPassword != null && BCrypt.checkpw(cleanPassword, storedHash);
+                                System.out.println("Auth: attendee found - email=" + cleanEmail + ", storedHashLength=" + (storedHash != null ? storedHash.length() : 0));
+                                System.out.println("Auth: storedHash starts with $2a$: " + (storedHash != null && storedHash.startsWith("$2a$")));
+                                System.out.println("Auth: cleanPassword length: " + (cleanPassword != null ? cleanPassword.length() : 0));
+                                
+                                boolean matches = false;
+                                if (storedHash != null && cleanPassword != null) {
+                                    try {
+                                        matches = BCrypt.checkpw(cleanPassword, storedHash);
+                                        System.out.println("Auth: BCrypt.checkpw result: " + matches);
+                                    } catch (Exception e) {
+                                        System.err.println("Auth: BCrypt.checkpw failed: " + e.getMessage());
+                                    }
+                                } else {
+                                    System.out.println("Auth: storedHash or cleanPassword is null");
+                                }
 
                                 if (matches) {
                                     // Remove password before returning to frontend
@@ -73,7 +87,20 @@ public class AuthServiceImpl implements AuthService {
                                     if (rs.getNumRows() > 0) {
                                         JsonObject row = rs.getRows().get(0);
                                         String storedHash = row.getString("password");
-                                        boolean matches = storedHash != null && cleanPassword != null && BCrypt.checkpw(cleanPassword, storedHash);
+                                        System.out.println("Auth: exhibitor found - email=" + cleanEmail + ", storedHashLength=" + (storedHash != null ? storedHash.length() : 0));
+                                        System.out.println("Auth: storedHash starts with $2a$: " + (storedHash != null && storedHash.startsWith("$2a$")));
+                                        
+                                        boolean matches = false;
+                                        if (storedHash != null && cleanPassword != null) {
+                                            try {
+                                                matches = BCrypt.checkpw(cleanPassword, storedHash);
+                                                System.out.println("Auth: exhibitor BCrypt.checkpw result: " + matches);
+                                            } catch (Exception e) {
+                                                System.err.println("Auth: exhibitor BCrypt.checkpw failed: " + e.getMessage());
+                                            }
+                                        } else {
+                                            System.out.println("Auth: exhibitor storedHash or cleanPassword is null");
+                                        }
 
                                         if (matches) {
                                             // Remove password before returning to frontend

@@ -39,7 +39,10 @@ public class AttendeeServiceImpl implements AttendeeService {
     public void registerAttendee(Attendee attendee, Handler<AsyncResult<Void>> resultHandler) {
         // Hash the password before persisting
         if (attendee.getPassword() != null && !attendee.getPassword().isBlank()) {
-            String hashed = BCrypt.hashpw(attendee.getPassword().trim(), BCrypt.gensalt(12));
+            String originalPassword = attendee.getPassword().trim();
+            String hashed = BCrypt.hashpw(originalPassword, BCrypt.gensalt(12));
+            System.out.println("Registration: originalPasswordLength=" + originalPassword.length() + ", hashedLength=" + hashed.length());
+            System.out.println("Registration: hashed starts with $2a$: " + hashed.startsWith("$2a$"));
             attendee.setPassword(hashed);
         }
 
