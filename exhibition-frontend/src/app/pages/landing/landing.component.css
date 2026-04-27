@@ -99,7 +99,7 @@
 .landing-container {
   min-height: 100vh;
   background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), 
-              url('http://localhost:8888/images/background.png');
+              url('https://exhibition-backend-9jxh.onrender.com/images/background.png');
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
