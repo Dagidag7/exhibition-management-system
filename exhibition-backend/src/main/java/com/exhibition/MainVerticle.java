@@ -158,6 +158,12 @@ public class MainVerticle extends AbstractVerticle {
                         dbUrl = "jdbc:postgresql://localhost:5432/exhibition_db";
                     }
                 }
+                
+                // Ensure the URL has the jdbc: prefix
+                if (dbUrl != null && dbUrl.startsWith("postgresql://") && !dbUrl.startsWith("jdbc:")) {
+                    dbUrl = "jdbc:" + dbUrl;
+                    System.out.println("Fixed database URL to include jdbc: prefix");
+                }
 
                 String dbDriver = System.getProperty("DB_DRIVER");
                 if (dbDriver == null || dbDriver.isBlank()) {
