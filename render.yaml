@@ -60,10 +60,13 @@ services:
       - key: ADMIN_PASSWORD
         value: Dagikelem123@
 
+      - key: ALLOWED_ORIGINS
+        value: https://exhibition-frontend.onrender.com
+
   - type: static
     name: exhibition-frontend
     rootDir: exhibition-frontend
-    buildCommand: npm install --legacy-peer-deps && npm run build --configuration=production
+    buildCommand: npm install --legacy-peer-deps && npm run build -- --configuration=production
     staticPublishPath: dist/exhibition-frontend/browser
 
     routes:
