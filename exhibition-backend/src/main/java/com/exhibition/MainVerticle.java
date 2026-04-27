@@ -146,6 +146,17 @@ public class MainVerticle extends AbstractVerticle {
                     dbUrl = System.getenv("DB_URL");
                 }
                 
+                // Load user and password first (needed for URL parsing)
+                String dbUser = System.getProperty("DB_USER");
+                if (dbUser == null || dbUser.isBlank()) {
+                    dbUser = System.getenv("DB_USER");
+                }
+                
+                String dbPassword = System.getProperty("DB_PASSWORD");
+                if (dbPassword == null || dbPassword.isBlank()) {
+                    dbPassword = System.getenv("DB_PASSWORD");
+                }
+                
                 // If DB_URL is not set, construct it from individual components
                 if (dbUrl == null || dbUrl.isBlank()) {
                     String dbHost = System.getenv("DB_HOST");
@@ -201,18 +212,11 @@ public class MainVerticle extends AbstractVerticle {
                     dbDriver = "org.postgresql.Driver";
                 }
 
-                String dbUser = System.getProperty("DB_USER");
-                if (dbUser == null || dbUser.isBlank()) {
-                    dbUser = System.getenv("DB_USER");
-                }
+                // Set defaults if still not set
                 if (dbUser == null || dbUser.isBlank()) {
                     dbUser = "exhibition_system";
                 }
-
-                String dbPassword = System.getProperty("DB_PASSWORD");
-                if (dbPassword == null || dbPassword.isBlank()) {
-                    dbPassword = System.getenv("DB_PASSWORD");
-                }
+                
                 if (dbPassword == null || dbPassword.isBlank()) {
                     throw new IllegalStateException("DB_PASSWORD environment variable must be set");
                 }
