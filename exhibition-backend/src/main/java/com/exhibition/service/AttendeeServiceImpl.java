@@ -37,12 +37,24 @@ public class AttendeeServiceImpl implements AttendeeService {
 
     @Override
     public void registerAttendee(Attendee attendee, Handler<AsyncResult<Void>> resultHandler) {
-        // Hash the password before persisting
+        // Hash the password before persisting - ensure consistent trimming
         if (attendee.getPassword() != null && !attendee.getPassword().isBlank()) {
-            String originalPassword = attendee.getPassword().trim();
-            String hashed = BCrypt.hashpw(originalPassword, BCrypt.gensalt(12));
-            System.out.println("Registration: originalPasswordLength=" + originalPassword.length() + ", hashedLength=" + hashed.length());
+            // Ensure consistent password processing: trim and validate
+            String originalPassword = attendee.getPassword();
+            String trimmedPassword = originalPassword.trim();
+            
+            System.out.println("Registration: originalPasswordLength=" + originalPassword.length() + ", trimmedLength=" + trimmedPassword.length());
+            System.out.println("Registration: passwords equal: " + originalPassword.equals(trimmedPassword));
+            
+            // Use the trimmed password for hashing to match login behavior
+            String hashed = BCrypt.hashpw(trimmedPassword, BCrypt.gensalt(12));
+            System.out.println("Registration: hashedLength=" + hashed.length());
             System.out.println("Registration: hashed starts with $2a$: " + hashed.startsWith("$2a$"));
+            
+            // Verify the hash works immediately after creation
+            boolean verifyHash = BCrypt.checkpw(trimmedPassword, hashed);
+            System.out.println("Registration: immediate hash verification: " + verifyHash);
+            
             attendee.setPassword(hashed);
         }
 
@@ -120,9 +132,16 @@ public class AttendeeServiceImpl implements AttendeeService {
 
     @Override
     public void updateAttendeePassword(int attendeeId, String password, Handler<AsyncResult<Void>> resultHandler) {
-        // When user changes password, clear the temporary password flag
+        // When user changes password, clear the temporary password flag and ensure consistent trimming
         if (password != null && !password.isBlank()) {
-            String hashed = BCrypt.hashpw(password.trim(), BCrypt.gensalt(12));
+            String trimmedPassword = password.trim();
+            String hashed = BCrypt.hashpw(trimmedPassword, BCrypt.gensalt(12));
+            System.out.println("Password update: trimmedLength=" + trimmedPassword.length() + ", hashedLength=" + hashed.length());
+            
+            // Verify the hash works immediately after creation
+            boolean verifyHash = BCrypt.checkpw(trimmedPassword, hashed);
+            System.out.println("Password update: immediate hash verification: " + verifyHash);
+            
             attendeeRepository.updateAttendeePasswordWithTemporaryFlag(attendeeId, hashed, false, resultHandler);
         } else {
             // Fallback: do not attempt to hash an empty password
