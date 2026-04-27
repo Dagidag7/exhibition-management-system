@@ -48,7 +48,7 @@ services:
         value: dagimawitkelem129@gmail.com
 
       - key: ADMIN_PASSWORD
-        sync: false
+        value: Dagikelem123@
 
   - type: static
     name: exhibition-frontend

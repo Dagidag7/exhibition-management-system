@@ -255,6 +255,19 @@ public class MainVerticle extends AbstractVerticle {
         // Initialize file upload service
         FileService fileService = new FileServiceImpl(vertx);
 
+        // Add a root route for health check
+        router.get("/").handler(ctx -> {
+            JsonObject response = new JsonObject()
+                .put("status", "OK")
+                .put("message", "Exhibition Management System API")
+                .put("version", "1.0.0")
+                .put("timestamp", java.time.Instant.now().toString());
+            
+            ctx.response()
+                .putHeader("Content-Type", "application/json")
+                .end(response.encode());
+        });
+
         // Register controllers
         AttendeeController.registerRoutes(router, attendeeService, exhibitorService);
         ExhibitorController.registerRoutes(router, exhibitorService);
