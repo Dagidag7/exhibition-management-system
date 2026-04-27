@@ -8,11 +8,6 @@ services:
       - key: SERVER_PORT
         value: "8888"
 
-      - key: DB_URL
-        fromDatabase:
-          name: exhibition-db
-          property: connectionString
-
       - key: DB_USER
         fromDatabase:
           name: exhibition-db
@@ -22,6 +17,21 @@ services:
         fromDatabase:
           name: exhibition-db
           property: password
+
+      - key: DB_HOST
+        fromDatabase:
+          name: exhibition-db
+          property: host
+
+      - key: DB_PORT
+        fromDatabase:
+          name: exhibition-db
+          property: port
+
+      - key: DB_NAME
+        fromDatabase:
+          name: exhibition-db
+          property: database
 
       - key: DB_DRIVER
         value: org.postgresql.Driver
@@ -53,7 +63,7 @@ services:
   - type: static
     name: exhibition-frontend
     rootDir: exhibition-frontend
-    buildCommand: npm install --legacy-peer-deps && npm run build -- --configuration production
+    buildCommand: npm install --legacy-peer-deps && npm run build --configuration=production
     staticPublishPath: dist/exhibition-frontend/browser
 
     routes:

@@ -136,8 +136,18 @@ public class MainVerticle extends AbstractVerticle {
                 if (dbUrl == null || dbUrl.isBlank()) {
                     dbUrl = System.getenv("DB_URL");
                 }
+                
+                // If DB_URL is not set, construct it from individual components
                 if (dbUrl == null || dbUrl.isBlank()) {
-                    dbUrl = "jdbc:postgresql://localhost:5432/exhibition_db";
+                    String dbHost = System.getenv("DB_HOST");
+                    String dbPort = System.getenv("DB_PORT");
+                    String dbName = System.getenv("DB_NAME");
+                    
+                    if (dbHost != null && dbPort != null && dbName != null) {
+                        dbUrl = String.format("jdbc:postgresql://%s:%s/%s", dbHost, dbPort, dbName);
+                    } else {
+                        dbUrl = "jdbc:postgresql://localhost:5432/exhibition_db";
+                    }
                 }
 
                 String dbDriver = System.getProperty("DB_DRIVER");
