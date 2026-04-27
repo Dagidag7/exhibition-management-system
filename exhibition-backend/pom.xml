@@ -40,6 +40,12 @@
             <artifactId>postgresql</artifactId>
             <version>42.7.3</version>
         </dependency>
+        <!-- C3P0 Connection Pool -->
+        <dependency>
+            <groupId>com.mchange</groupId>
+            <artifactId>c3p0</artifactId>
+            <version>0.9.5.5</version>
+        </dependency>
         <!-- JUnit for testing -->
         <dependency>
             <groupId>junit</groupId>

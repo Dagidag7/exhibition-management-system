@@ -127,6 +127,15 @@ public class MainVerticle extends AbstractVerticle {
     public void start() {
         vertx.executeBlocking(promise -> {
             try {
+                // Explicitly load PostgreSQL driver
+                try {
+                    Class.forName("org.postgresql.Driver");
+                    System.out.println("✓ PostgreSQL driver loaded successfully");
+                } catch (ClassNotFoundException e) {
+                    System.err.println("✗ PostgreSQL driver not found: " + e.getMessage());
+                    throw new RuntimeException("PostgreSQL driver not found", e);
+                }
+                
                 ObjectMapper mapper = DatabindCodec.mapper();
                 mapper.registerModule(new JavaTimeModule());
                 DatabindCodec.prettyMapper().registerModule(new JavaTimeModule());
