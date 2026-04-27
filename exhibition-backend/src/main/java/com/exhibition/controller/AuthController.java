@@ -12,7 +12,7 @@ public class AuthController {
         router.route("/auth/*").handler(BodyHandler.create());
         
         router.post("/auth/login").handler(ctx -> login(ctx, authService));
-        router.post("/auth/test-login").handler(ctx -> testLogin(ctx, authService));
+        router.get("/auth/debug/:email").handler(ctx -> debugUser(ctx, authService));
         router.get("/auth/me").handler(ctx -> getCurrentUser(ctx, authService));
         router.post("/auth/logout").handler(ctx -> logout(ctx, authService));
         router.post("/auth/change-password").handler(ctx -> changePassword(ctx, authService));
@@ -96,6 +96,41 @@ public class AuthController {
                            .put("message", "Authentication failed: " + result.cause().getMessage())
                            .put("error", result.cause().getMessage());
                 }
+                
+                ctx.response()
+                    .setStatusCode(200)
+                    .putHeader("Content-Type", "application/json")
+                    .end(response.encode());
+            });
+            
+        } catch (Exception e) {
+            ctx.response()
+                .setStatusCode(500)
+                .putHeader("Content-Type", "application/json")
+                .end(new JsonObject()
+                    .put("error", "Internal server error: " + e.getMessage())
+                    .encode());
+        }
+    }
+    
+    private static void debugUser(RoutingContext ctx, AuthService authService) {
+        try {
+            String email = ctx.pathParam("email");
+            if (email == null || email.trim().isEmpty()) {
+                ctx.response()
+                    .setStatusCode(400)
+                    .putHeader("Content-Type", "application/json")
+                    .end(new JsonObject()
+                        .put("error", "Email parameter is required")
+                        .encode());
+                return;
+            }
+            
+            // Get user info for debugging (without password)
+            authService.getUserById(1, result -> {
+                JsonObject response = new JsonObject();
+                response.put("email", email.trim().toLowerCase());
+                response.put("message", "Debug endpoint - check server logs for detailed authentication info");
                 
                 ctx.response()
                     .setStatusCode(200)
