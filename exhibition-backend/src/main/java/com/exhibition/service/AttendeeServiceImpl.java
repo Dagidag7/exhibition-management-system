@@ -40,21 +40,8 @@ public class AttendeeServiceImpl implements AttendeeService {
         // Hash the password before persisting - ensure consistent trimming
         if (attendee.getPassword() != null && !attendee.getPassword().isBlank()) {
             // Ensure consistent password processing: trim and validate
-            String originalPassword = attendee.getPassword();
-            String trimmedPassword = originalPassword.trim();
-            
-            System.out.println("Registration: originalPasswordLength=" + originalPassword.length() + ", trimmedLength=" + trimmedPassword.length());
-            System.out.println("Registration: passwords equal: " + originalPassword.equals(trimmedPassword));
-            
-            // Use the trimmed password for hashing to match login behavior
+            String trimmedPassword = attendee.getPassword().trim();
             String hashed = BCrypt.hashpw(trimmedPassword, BCrypt.gensalt(12));
-            System.out.println("Registration: hashedLength=" + hashed.length());
-            System.out.println("Registration: hashed starts with $2a$: " + hashed.startsWith("$2a$"));
-            
-            // Verify the hash works immediately after creation
-            boolean verifyHash = BCrypt.checkpw(trimmedPassword, hashed);
-            System.out.println("Registration: immediate hash verification: " + verifyHash);
-            
             attendee.setPassword(hashed);
         }
 
@@ -136,12 +123,6 @@ public class AttendeeServiceImpl implements AttendeeService {
         if (password != null && !password.isBlank()) {
             String trimmedPassword = password.trim();
             String hashed = BCrypt.hashpw(trimmedPassword, BCrypt.gensalt(12));
-            System.out.println("Password update: trimmedLength=" + trimmedPassword.length() + ", hashedLength=" + hashed.length());
-            
-            // Verify the hash works immediately after creation
-            boolean verifyHash = BCrypt.checkpw(trimmedPassword, hashed);
-            System.out.println("Password update: immediate hash verification: " + verifyHash);
-            
             attendeeRepository.updateAttendeePasswordWithTemporaryFlag(attendeeId, hashed, false, resultHandler);
         } else {
             // Fallback: do not attempt to hash an empty password

@@ -31,7 +31,7 @@ public class AuthServiceImpl implements AuthService {
                 final String cleanEmail = email == null ? null : email.trim().toLowerCase();
                 final String cleanPassword = password == null ? null : password.trim();
 
-                System.out.println("Auth: login attempt email=" + cleanEmail + ", pwdLen=" + (cleanPassword == null ? 0 : cleanPassword.length()));
+                System.out.println("Auth: login attempt email=" + cleanEmail);
 
                 // 1) Try attendee by email only, then verify password with BCrypt
                 String attendeeQuery = "SELECT attendee_id as id, name, email, password, COALESCE(is_temporary_password, false) as is_temporary_password, COALESCE(password_changed, true) as password_changed, 'attendee' as role FROM attendee WHERE LOWER(email) = ?";
@@ -45,31 +45,16 @@ public class AuthServiceImpl implements AuthService {
                             if (rs.getNumRows() > 0) {
                                 JsonObject row = rs.getRows().get(0);
                                 String storedHash = row.getString("password");
-                                System.out.println("Auth: attendee found - email=" + cleanEmail + ", storedHashLength=" + (storedHash != null ? storedHash.length() : 0));
-                                System.out.println("Auth: storedHash starts with $2a$: " + (storedHash != null && storedHash.startsWith("$2a$")));
-                                System.out.println("Auth: cleanPassword length: " + (cleanPassword != null ? cleanPassword.length() : 0));
-                                
-                                // Debug: Let's also try without trimming the password to see if that's the issue
-                                String originalPassword = password == null ? null : password;
-                                System.out.println("Auth: originalPassword length: " + (originalPassword != null ? originalPassword.length() : 0));
-                                System.out.println("Auth: passwords equal: " + (cleanPassword != null && originalPassword != null && cleanPassword.equals(originalPassword)));
+                                System.out.println("Auth: attendee found - email=" + cleanEmail);
                                 
                                 boolean matches = false;
                                 if (storedHash != null && cleanPassword != null) {
                                     try {
                                         matches = BCrypt.checkpw(cleanPassword, storedHash);
-                                        System.out.println("Auth: BCrypt.checkpw result with trimmed password: " + matches);
-                                        
-                                        // If trimmed password fails, try original password
-                                        if (!matches && originalPassword != null && !originalPassword.equals(cleanPassword)) {
-                                            matches = BCrypt.checkpw(originalPassword, storedHash);
-                                            System.out.println("Auth: BCrypt.checkpw result with original password: " + matches);
-                                        }
+                                        System.out.println("Auth: BCrypt.checkpw result: " + matches);
                                     } catch (Exception e) {
                                         System.err.println("Auth: BCrypt.checkpw failed: " + e.getMessage());
                                     }
-                                } else {
-                                    System.out.println("Auth: storedHash or cleanPassword is null");
                                 }
 
                                 if (matches) {
