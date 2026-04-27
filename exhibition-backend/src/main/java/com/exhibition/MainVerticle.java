@@ -178,10 +178,30 @@ public class MainVerticle extends AbstractVerticle {
                     .put("url", dbUrl)
                     .put("driver_class", dbDriver)
                     .put("user", dbUser)
-                    .put("password", dbPassword);
+                    .put("password", dbPassword)
+                    .put("max_pool_size", 10)
+                    .put("initial_pool_size", 3)
+                    .put("min_pool_size", 2)
+                    .put("max_idle_time", 300)
+                    .put("acquire_increment", 1)
+                    .put("acquire_retry_attempts", 3)
+                    .put("acquire_retry_delay", 1000);
+
+                System.out.println("Connecting to database: " + dbUrl);
+                System.out.println("Database user: " + dbUser);
 
                 // Create the JDBC client
                 jdbc = JDBCClient.createShared(vertx, config);
+                
+                // Test the connection
+                jdbc.getConnection(connRes -> {
+                    if (connRes.succeeded()) {
+                        System.out.println("✓ Database connection test successful!");
+                        connRes.result().close();
+                    } else {
+                        System.err.println("✗ Database connection test failed: " + connRes.cause().getMessage());
+                    }
+                });
                 
                 promise.complete();
             } catch (Exception e) {
