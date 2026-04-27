@@ -11,6 +11,7 @@ public class AuthController {
     public static void registerRoutes(Router router, AuthService authService) {
         router.route("/auth/*").handler(BodyHandler.create());
         
+        router.get("/auth/login").handler(ctx -> loginPage(ctx));
         router.post("/auth/login").handler(ctx -> login(ctx, authService));
         router.get("/auth/debug/:email").handler(ctx -> debugUser(ctx, authService));
         router.get("/auth/me").handler(ctx -> getCurrentUser(ctx, authService));
@@ -18,6 +19,14 @@ public class AuthController {
         router.post("/auth/change-password").handler(ctx -> changePassword(ctx, authService));
         router.get("/auth/users/:id/status").handler(ctx -> getUserStatus(ctx, authService));
         router.get("/auth/users/:id").handler(ctx -> getUserById(ctx, authService));
+    }
+    
+    private static void loginPage(RoutingContext ctx) {
+        // Redirect to frontend login page
+        ctx.response()
+            .setStatusCode(302)
+            .putHeader("Location", "https://exhibition-frontend.onrender.com/login")
+            .end();
     }
     
     private static void login(RoutingContext ctx, AuthService authService) {
