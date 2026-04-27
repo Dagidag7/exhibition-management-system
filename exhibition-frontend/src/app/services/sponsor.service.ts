@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export interface Sponsor {
   sponsorId?: number;
@@ -16,7 +17,7 @@ export interface Sponsor {
   providedIn: 'root'
 })
 export class SponsorService {
-  private apiUrl = 'http://localhost:8888/sponsors'; // Adjust if your backend runs elsewhere
+  private apiUrl = `${environment.apiUrl}/sponsors`;
 
   constructor(private http: HttpClient) {}
 

@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export interface Exhibitor {
   id?: number;          
@@ -20,7 +21,7 @@ export interface Exhibitor {
   providedIn: 'root'
 })
 export class ExhibitorService {
-  private apiUrl = 'http://localhost:8888/exhibitors';
+  private apiUrl = `${environment.apiUrl}/exhibitors`;
 
   constructor(private http: HttpClient) {}
 

@@ -4,6 +4,7 @@ import { Observable, forkJoin } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { ExhibitorService } from './exhibitor.service';
 import { ConferenceService } from './conference.service';
+import { environment } from '../../environments/environment';
 
 export interface Floor {
   floorId: number;
@@ -17,7 +18,7 @@ export interface Floor {
   providedIn: 'root'
 })
 export class FloorService {
-  private apiUrl = 'http://localhost:8888/floors';
+  private apiUrl = `${environment.apiUrl}/floors`;
 
   constructor(
     private http: HttpClient,
