@@ -45,12 +45,15 @@ public class AttendeeServiceImpl implements AttendeeService {
             attendee.setPassword(hashed);
         }
 
+        System.out.println("Attempting to register attendee: " + attendee.getEmail());
         attendeeRepository.addAttendee(attendee, ar -> {
             if (ar.succeeded()) {
+                System.out.println("Attendee registration successful: " + attendee.getEmail());
                 // Registration succeeded. We no longer send a receipt via email;
                 // the attendee can download their receipt from their dashboard.
                 resultHandler.handle(io.vertx.core.Future.succeededFuture());
             } else {
+                System.err.println("Attendee registration failed for " + attendee.getEmail() + ": " + ar.cause().getMessage());
                 resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
             }
         });

@@ -19,12 +19,17 @@ public class AttendeeRepositoryImpl implements AttendeeRepository {
 
 @Override
 public void addAttendee(Attendee attendee, Handler<AsyncResult<Void>> resultHandler) {
+    // Ensure session_ids is not null
+    if (attendee.getSessionIds() == null) {
+        attendee.setSessionIds("");
+    }
+    
     // Include payment_fee in INSERT if provided
     String sql;
     JsonArray params;
     
     if (attendee.getPaymentFee() != null) {
-        sql = "INSERT INTO attendee (name, email, phone, password, registration_date, session_ids, payment_fee) VALUES (?, ?, ?, ?, CURRENT_DATE, ?, ?)";
+        sql = "INSERT INTO attendee (name, email, phone, password, registration_date, session_ids, payment_fee) VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP, ?, ?)";
         params = new JsonArray()
                 .add(attendee.getName())
                 .add(attendee.getEmail())
@@ -33,7 +38,7 @@ public void addAttendee(Attendee attendee, Handler<AsyncResult<Void>> resultHand
                 .add(attendee.getSessionIds())
                 .add(attendee.getPaymentFee());
     } else {
-        sql = "INSERT INTO attendee (name, email, phone, password, registration_date, session_ids) VALUES (?, ?, ?, ?, CURRENT_DATE, ?)";
+        sql = "INSERT INTO attendee (name, email, phone, password, registration_date, session_ids) VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP, ?)";
         params = new JsonArray()
                 .add(attendee.getName())
                 .add(attendee.getEmail())
@@ -42,18 +47,24 @@ public void addAttendee(Attendee attendee, Handler<AsyncResult<Void>> resultHand
                 .add(attendee.getSessionIds());
     }
     
+    System.out.println("Executing SQL: " + sql);
+    System.out.println("With params: name=" + attendee.getName() + ", email=" + attendee.getEmail() + ", phone=" + attendee.getPhone());
+    
     jdbc.getConnection(res -> {
         if (res.succeeded()) {
             SQLConnection connection = res.result();
             connection.updateWithParams(sql, params, ar -> {
                 connection.close();
                 if (ar.succeeded()) {
+                    System.out.println("Database insert successful for: " + attendee.getEmail());
                     resultHandler.handle(io.vertx.core.Future.succeededFuture());
                 } else {
+                    System.err.println("Database insert failed for " + attendee.getEmail() + ": " + ar.cause().getMessage());
                     resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
                 }
             });
         } else {
+            System.err.println("Database connection failed: " + res.cause().getMessage());
             resultHandler.handle(io.vertx.core.Future.failedFuture(res.cause()));
         }
     });
