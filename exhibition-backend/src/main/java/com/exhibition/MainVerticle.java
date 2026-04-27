@@ -194,10 +194,12 @@ public class MainVerticle extends AbstractVerticle {
                     .put("max_idle_time", 300)
                     .put("acquire_increment", 1)
                     .put("acquire_retry_attempts", 3)
-                    .put("acquire_retry_delay", 1000);
+                    .put("acquire_retry_delay", 1000)
+                    .put("provider_class", "io.vertx.ext.jdbc.spi.impl.C3P0DataSourceProvider");
 
                 System.out.println("Connecting to database: " + dbUrl);
                 System.out.println("Database user: " + dbUser);
+                System.out.println("Database driver: " + dbDriver);
 
                 // Create the JDBC client
                 jdbc = JDBCClient.createShared(vertx, config);
