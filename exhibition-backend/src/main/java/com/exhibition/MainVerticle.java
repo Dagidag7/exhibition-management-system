@@ -159,8 +159,36 @@ public class MainVerticle extends AbstractVerticle {
                     }
                 }
                 
-                // Ensure the URL has the jdbc: prefix
-                if (dbUrl != null && dbUrl.startsWith("postgresql://") && !dbUrl.startsWith("jdbc:")) {
+                // Fix PostgreSQL URL format if needed
+                // Render provides: postgresql://user:pass@host/db
+                // JDBC needs: jdbc:postgresql://host:port/db (with user/pass as separate params)
+                if (dbUrl != null && dbUrl.contains("@")) {
+                    // Extract components from postgresql://user:pass@host/db format
+                    String urlPattern = "postgresql://([^:]+):([^@]+)@([^/]+)/(.+)";
+                    java.util.regex.Pattern pattern = java.util.regex.Pattern.compile(urlPattern);
+                    java.util.regex.Matcher matcher = pattern.matcher(dbUrl);
+                    
+                    if (matcher.find()) {
+                        String extractedUser = matcher.group(1);
+                        String extractedPassword = matcher.group(2);
+                        String extractedHost = matcher.group(3);
+                        String extractedDbName = matcher.group(4);
+                        
+                        // Reconstruct as proper JDBC URL
+                        dbUrl = String.format("jdbc:postgresql://%s:5432/%s", extractedHost, extractedDbName);
+                        
+                        // Override user and password if they were in the URL
+                        if (dbUser == null || dbUser.isBlank()) {
+                            dbUser = extractedUser;
+                        }
+                        if (dbPassword == null || dbPassword.isBlank()) {
+                            dbPassword = extractedPassword;
+                        }
+                        
+                        System.out.println("Parsed and reconstructed database URL from connection string");
+                    }
+                } else if (dbUrl != null && dbUrl.startsWith("postgresql://") && !dbUrl.startsWith("jdbc:")) {
+                    // Simple case: just add jdbc: prefix
                     dbUrl = "jdbc:" + dbUrl;
                     System.out.println("Fixed database URL to include jdbc: prefix");
                 }
