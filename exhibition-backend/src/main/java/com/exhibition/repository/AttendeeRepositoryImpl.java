@@ -19,32 +19,25 @@ public class AttendeeRepositoryImpl implements AttendeeRepository {
 
 @Override
 public void addAttendee(Attendee attendee, Handler<AsyncResult<Void>> resultHandler) {
-    // Ensure session_ids is not null
-    if (attendee.getSessionIds() == null) {
-        attendee.setSessionIds("");
-    }
-    
     // Include payment_fee in INSERT if provided
     String sql;
     JsonArray params;
     
     if (attendee.getPaymentFee() != null) {
-        sql = "INSERT INTO attendee (name, email, phone, password, registration_date, session_ids, payment_fee) VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP, ?, ?)";
+        sql = "INSERT INTO attendee (name, email, phone, password, registration_date, payment_fee) VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP, ?)";
         params = new JsonArray()
                 .add(attendee.getName())
                 .add(attendee.getEmail())
                 .add(attendee.getPhone())
                 .add(attendee.getPassword())
-                .add(attendee.getSessionIds())
                 .add(attendee.getPaymentFee());
     } else {
-        sql = "INSERT INTO attendee (name, email, phone, password, registration_date, session_ids) VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP, ?)";
+        sql = "INSERT INTO attendee (name, email, phone, password, registration_date) VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)";
         params = new JsonArray()
                 .add(attendee.getName())
                 .add(attendee.getEmail())
                 .add(attendee.getPhone())
-                .add(attendee.getPassword())
-                .add(attendee.getSessionIds());
+                .add(attendee.getPassword());
     }
     
     System.out.println("Executing SQL: " + sql);
