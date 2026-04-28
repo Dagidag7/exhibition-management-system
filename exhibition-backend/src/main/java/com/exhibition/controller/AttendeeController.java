@@ -188,46 +188,52 @@ private static void createAttendee(RoutingContext ctx, AttendeeService attendeeS
         // Check if email already exists before proceeding with registration
         attendeeService.getAttendeeByEmail(attendee.getEmail(), emailCheckResult -> {
             if (emailCheckResult.succeeded()) {
-                // Email already exists
+                // Email already exists - return clear error
+                System.out.println("Registration blocked: Email already exists - " + attendee.getEmail());
                 ctx.response()
                    .setStatusCode(400)
                    .putHeader("content-type", "application/json")
-                   .end("{\"error\": \"This email is already registered. Please use a different email or try logging in.\"}");
+                   .end("{\"error\": \"This email is already registered. Please use a different email or try logging in.\", \"success\": false}");
                 return;
             }
             
             // Email doesn't exist, proceed with registration
+            System.out.println("Email available, proceeding with registration: " + attendee.getEmail());
             attendeeService.registerAttendee(attendee, res -> {
             if (res.succeeded()) {
+                System.out.println("Registration successful for: " + attendee.getEmail());
                 ctx.response()
                    .setStatusCode(201)
                    .putHeader("content-type", "application/json")
-                   .end("{\"message\": \"Attendee created successfully\"}");
+                   .end("{\"message\": \"Attendee created successfully\", \"success\": true}");
             } else {
                 String rawMsg = res.cause() != null ? String.valueOf(res.cause().getMessage()) : "";
                 String msg = rawMsg.toLowerCase();
 
                 // Friendly messages for duplicate email/phone (unique constraint violation)
                 if (msg.contains("uq_attendee_email") || (msg.contains("duplicate") && msg.contains("email")) || (msg.contains("unique") && msg.contains("email"))) {
+                    System.err.println("Database constraint violation: duplicate email - " + attendee.getEmail());
                     ctx.response()
                        .setStatusCode(400)
                        .putHeader("content-type", "application/json")
-                       .end("{\"error\": \"This email is already registered. Please use a different email or try logging in.\"}");
+                       .end("{\"error\": \"This email is already registered. Please use a different email or try logging in.\", \"success\": false}");
                     return;
                 }
                 if (msg.contains("uq_attendee_phone") || (msg.contains("duplicate") && msg.contains("phone")) || (msg.contains("unique") && msg.contains("phone"))) {
+                    System.err.println("Database constraint violation: duplicate phone - " + attendee.getPhone());
                     ctx.response()
                        .setStatusCode(400)
                        .putHeader("content-type", "application/json")
-                       .end("{\"error\": \"This phone number is already registered. Please use a different phone number.\"}");
+                       .end("{\"error\": \"This phone number is already registered. Please use a different phone number.\", \"success\": false}");
                     return;
                 }
 
                 // Default error response
+                System.err.println("Registration failed for " + attendee.getEmail() + ": " + rawMsg);
                 ctx.response()
                    .setStatusCode(500)
                    .putHeader("content-type", "application/json")
-                   .end("{\"error\": \"Registration failed\"}");
+                   .end("{\"error\": \"Registration failed\", \"success\": false}");
             }
         });
         }); // Close email check block
