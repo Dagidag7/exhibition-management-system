@@ -27,6 +27,8 @@ public class SponsorRepositoryImpl implements SponsorRepository {
                 .add(sponsor.getBenefits())
                 .add(sponsor.getLogoUrl());
 
+        System.out.println("Adding sponsor: " + sponsor.getName() + ", email: " + sponsor.getEmail() + ", amount: " + sponsor.getContributionAmount());
+
         MainVerticle.vertx.executeBlocking(promise -> {
             jdbc.getConnection(res -> {
                 if (res.succeeded()) {
@@ -34,12 +36,15 @@ public class SponsorRepositoryImpl implements SponsorRepository {
                     connection.updateWithParams(sql, params, ar -> {
                         connection.close();
                         if (ar.succeeded()) {
+                            System.out.println("Sponsor added successfully: " + sponsor.getName());
                             promise.complete();
                         } else {
+                            System.err.println("Failed to add sponsor: " + ar.cause().getMessage());
                             promise.fail(ar.cause());
                         }
                     });
                 } else {
+                    System.err.println("Sponsor database connection failed: " + res.cause().getMessage());
                     promise.fail(res.cause());
                 }
             });
