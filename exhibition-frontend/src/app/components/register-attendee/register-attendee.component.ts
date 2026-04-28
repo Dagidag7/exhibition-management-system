@@ -65,6 +65,7 @@ export class RegisterAttendeeComponent {
   cardElement!: StripeCardElement;
   elements!: StripeElements;
   cardElementMounted: boolean = false;
+  isCheckingEmail: boolean = false;
 
   constructor(
     public dialogRef: MatDialogRef<RegisterAttendeeComponent>,
@@ -79,16 +80,70 @@ export class RegisterAttendeeComponent {
   }
 
   async onRegisterSubmit() {
-    if (this.validateForm()) {
-      // Don't register yet - just validate and move to payment step
-      // Registration will happen after successful payment
+    if (!this.validateForm()) {
+      return;
+    }
+
+    // Check if email is already registered BEFORE proceeding to payment
+    this.isCheckingEmail = true;
+    this.isSubmitting = true;
+
+    try {
+      const emailCheckResponse: any = await this.attendeeService
+        .checkEmailAvailability(this.attendee.email)
+        .toPromise();
+
+      // Email is available
+      if (emailCheckResponse.available === true) {
+        this.isSubmitting = false;
+        this.isCheckingEmail = false;
+        
+        // Move to payment step
+        this.currentStep = 2;
+        
+        // Initialize Stripe card element for step 2
+        this.initializeStripe();
+      } else {
+        // Email is not available
+        this.isSubmitting = false;
+        this.isCheckingEmail = false;
+        
+        this.snackBar.open(
+          'This email is already registered. Please use a different email or try logging in.',
+          'Close',
+          {
+            duration: 6000,
+            horizontalPosition: 'center',
+            verticalPosition: 'top'
+          }
+        );
+      }
+    } catch (error: any) {
+      this.isCheckingEmail = false;
       this.isSubmitting = false;
-      
-      // Move to payment step
-      this.currentStep = 2;
-      
-      // Initialize Stripe card element for step 2
-      this.initializeStripe();
+
+      // If we get a 400 error, it means email is already taken
+      if (error.status === 400) {
+        const errorMessage = error.error?.error || 
+          'This email is already registered. Please use a different email or try logging in.';
+        
+        this.snackBar.open(errorMessage, 'Close', {
+          duration: 6000,
+          horizontalPosition: 'center',
+          verticalPosition: 'top'
+        });
+      } else {
+        // Other errors (network, server, etc.)
+        this.snackBar.open(
+          'Unable to verify email. Please try again.',
+          'Close',
+          {
+            duration: 4000,
+            horizontalPosition: 'center',
+            verticalPosition: 'top'
+          }
+        );
+      }
     }
   }
 

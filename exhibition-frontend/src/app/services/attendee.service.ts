@@ -62,4 +62,8 @@ export class AttendeeService {
   downloadReceipt(id: number): Observable<Blob> {
     return this.http.get(`${this.apiUrl}/${id}/receipt`, { responseType: 'blob' });
   }
+
+  checkEmailAvailability(email: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/check-email`, { email });
+  }
 } 
