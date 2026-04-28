@@ -29,6 +29,7 @@ public class AttendeeController {
 
     public static void registerRoutes(Router router, AttendeeService attendeeService, ExhibitorService exhibitorService) {
         router.post("/attendees").handler(ctx -> createAttendee(ctx, attendeeService));
+        router.post("/attendees/check-email").handler(ctx -> checkEmailAvailability(ctx, attendeeService));
         router.get("/attendees").handler(ctx -> getAllAttendees(ctx, attendeeService));
         router.get("/attendees/:id").handler(ctx -> getAttendeeById(ctx, attendeeService));
         router.get("/attendees/:id/receipt").handler(ctx -> downloadAttendeeReceipt(ctx, attendeeService));
@@ -237,6 +238,44 @@ private static void createAttendee(RoutingContext ctx, AttendeeService attendeeS
            .end("{\"error\": \"Invalid JSON format: " + e.getMessage() + "\"}");
     }
 }
+
+    private static void checkEmailAvailability(RoutingContext ctx, AttendeeService attendeeService) {
+        try {
+            JsonObject body = ctx.getBodyAsJson();
+            String email = body != null ? body.getString("email") : null;
+            
+            if (email == null || email.trim().isEmpty()) {
+                ctx.response()
+                   .setStatusCode(400)
+                   .putHeader("content-type", "application/json")
+                   .end("{\"error\": \"Email is required\"}");
+                return;
+            }
+            
+            attendeeService.getAttendeeByEmail(email.trim(), result -> {
+                if (result.succeeded()) {
+                    // Email already exists
+                    ctx.response()
+                       .setStatusCode(400)
+                       .putHeader("content-type", "application/json")
+                       .end("{\"available\": false, \"error\": \"This email is already registered. Please use a different email or try logging in.\"}");
+                } else {
+                    // Email is available
+                    ctx.response()
+                       .setStatusCode(200)
+                       .putHeader("content-type", "application/json")
+                       .end("{\"available\": true, \"message\": \"Email is available\"}");
+                }
+            });
+            
+        } catch (Exception e) {
+            ctx.response()
+               .setStatusCode(500)
+               .putHeader("content-type", "application/json")
+               .end("{\"error\": \"Internal server error\"}");
+        }
+    }
+
     private static void getAllAttendees(RoutingContext ctx, AttendeeService attendeeService) {
         attendeeService.listAttendees(res -> {
             if (res.succeeded()) {
