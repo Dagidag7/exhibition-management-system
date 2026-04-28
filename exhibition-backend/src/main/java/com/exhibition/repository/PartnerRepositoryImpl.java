@@ -26,18 +26,23 @@ public class PartnerRepositoryImpl implements PartnerRepository {
                 .add(partner.getPartnershipType())
                 .add(partner.getBenefits());
 
+        System.out.println("Adding partner: " + partner.getName() + ", email: " + partner.getEmail());
+        
         jdbc.getConnection(res -> {
             if (res.succeeded()) {
                 SQLConnection connection = res.result();
                 connection.updateWithParams(sql, params, ar -> {
                     connection.close();
                     if (ar.succeeded()) {
+                        System.out.println("Partner added successfully: " + partner.getName());
                         resultHandler.handle(io.vertx.core.Future.succeededFuture());
                     } else {
+                        System.err.println("Failed to add partner: " + ar.cause().getMessage());
                         resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
                     }
                 });
             } else {
+                System.err.println("Database connection failed: " + res.cause().getMessage());
                 resultHandler.handle(io.vertx.core.Future.failedFuture(res.cause()));
             }
         });
