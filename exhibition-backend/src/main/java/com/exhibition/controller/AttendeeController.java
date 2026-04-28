@@ -173,9 +173,9 @@ private static void createAttendee(RoutingContext ctx, AttendeeService attendeeS
     try {
         Attendee attendee = Json.decodeValue(body, Attendee.class);
         
-        // Basic full name validation (letters and spaces only)
+        // Basic full name validation (allow letters, spaces, hyphens, apostrophes, and common accented characters)
         String name = attendee.getName() != null ? attendee.getName().trim() : "";
-        if (name.isEmpty() || !name.matches("^[A-Za-z ]+$")) {
+        if (name.isEmpty() || !name.matches("^[A-Za-z\\s\\-'àáâäèéêëìíîïòóôöùúûüñç]+$")) {
             ctx.response()
                .setStatusCode(400)
                .putHeader("content-type", "application/json")
