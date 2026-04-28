@@ -65,6 +65,11 @@ public class AttendeeServiceImpl implements AttendeeService {
     }
 
     @Override
+    public void getAttendeeByEmail(String email, Handler<AsyncResult<Attendee>> resultHandler) {
+        attendeeRepository.getAttendeeByEmail(email, resultHandler);
+    }
+
+    @Override
     public void listAttendees(Handler<AsyncResult<List<Attendee>>> resultHandler) {
         attendeeRepository.getAllAttendees(resultHandler);
     }

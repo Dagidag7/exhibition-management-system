@@ -8,6 +8,7 @@ import java.util.List;
 public interface AttendeeService {
     void registerAttendee(Attendee attendee, Handler<AsyncResult<Void>> resultHandler);
     void getAttendee(int id, Handler<AsyncResult<Attendee>> resultHandler);
+    void getAttendeeByEmail(String email, Handler<AsyncResult<Attendee>> resultHandler);
     void listAttendees(Handler<AsyncResult<List<Attendee>>> resultHandler);
     void updateAttendee(Attendee attendee, Handler<AsyncResult<Void>> resultHandler);
     void removeAttendee(int id, Handler<AsyncResult<Void>> resultHandler);

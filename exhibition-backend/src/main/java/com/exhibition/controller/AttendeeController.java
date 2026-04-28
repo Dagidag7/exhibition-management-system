@@ -184,10 +184,19 @@ private static void createAttendee(RoutingContext ctx, AttendeeService attendeeS
         }
         attendee.setName(name);
         
-        // The registration date will be set automatically in the constructor
-        // No need to override it here
-        
-        attendeeService.registerAttendee(attendee, res -> {
+        // Check if email already exists before proceeding with registration
+        attendeeService.getAttendeeByEmail(attendee.getEmail(), emailCheckResult -> {
+            if (emailCheckResult.succeeded()) {
+                // Email already exists
+                ctx.response()
+                   .setStatusCode(400)
+                   .putHeader("content-type", "application/json")
+                   .end("{\"error\": \"This email is already registered. Please use a different email or try logging in.\"}");
+                return;
+            }
+            
+            // Email doesn't exist, proceed with registration
+            attendeeService.registerAttendee(attendee, res -> {
             if (res.succeeded()) {
                 ctx.response()
                    .setStatusCode(201)
@@ -202,14 +211,14 @@ private static void createAttendee(RoutingContext ctx, AttendeeService attendeeS
                     ctx.response()
                        .setStatusCode(400)
                        .putHeader("content-type", "application/json")
-                       .end("{\"error\": \"Invalid email\"}");
+                       .end("{\"error\": \"This email is already registered. Please use a different email or try logging in.\"}");
                     return;
                 }
                 if (msg.contains("uq_attendee_phone") || (msg.contains("duplicate") && msg.contains("phone")) || (msg.contains("unique") && msg.contains("phone"))) {
                     ctx.response()
                        .setStatusCode(400)
                        .putHeader("content-type", "application/json")
-                       .end("{\"error\": \"Invalid phone number\"}");
+                       .end("{\"error\": \"This phone number is already registered. Please use a different phone number.\"}");
                     return;
                 }
 
@@ -220,6 +229,7 @@ private static void createAttendee(RoutingContext ctx, AttendeeService attendeeS
                    .end("{\"error\": \"Registration failed\"}");
             }
         });
+        }); // Close email check block
     } catch (Exception e) {
         ctx.response()
            .setStatusCode(400)
