@@ -56,7 +56,7 @@ import com.exhibition.controller.DatabaseController;
 import com.exhibition.controller.FileUploadController;
 import com.exhibition.service.DatabaseService;
 import com.exhibition.service.FileService;
-import com.exhibition.service.FileServiceImpl;
+import com.exhibition.service.CloudinaryFileServiceImpl;
 
 import io.vertx.ext.web.handler.BodyHandler;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -337,8 +337,8 @@ public class MainVerticle extends AbstractVerticle {
         
         DatabaseService databaseService = new DatabaseService(jdbc);
 
-        // Initialize file upload service
-        FileService fileService = new FileServiceImpl(vertx);
+        // Initialize file upload service (Cloudinary for persistent cloud storage)
+        FileService fileService = new CloudinaryFileServiceImpl(vertx);
 
         // Add a root route for health check
         router.get("/").handler(ctx -> {
