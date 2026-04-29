@@ -184,6 +184,28 @@ public void addAttendee(Attendee attendee, Handler<AsyncResult<Void>> resultHand
     }
 
     @Override
+    public void getAttendeeByPhone(String phone, Handler<AsyncResult<Attendee>> resultHandler) {
+        String sql = "SELECT * FROM attendee WHERE phone = ?";
+        jdbc.getConnection(res -> {
+            if (res.succeeded()) {
+                SQLConnection connection = res.result();
+                connection.queryWithParams(sql, new JsonArray().add(phone), ar -> {
+                    connection.close();
+                    if (ar.succeeded() && !ar.result().getRows().isEmpty()) {
+                        JsonObject row = ar.result().getRows().get(0);
+                        Attendee attendee = mapRowToAttendee(row);
+                        resultHandler.handle(io.vertx.core.Future.succeededFuture(attendee));
+                    } else {
+                        resultHandler.handle(io.vertx.core.Future.failedFuture("Attendee not found"));
+                    }
+                });
+            } else {
+                resultHandler.handle(io.vertx.core.Future.failedFuture(res.cause()));
+            }
+        });
+    }
+
+    @Override
     public void updateAttendeePassword(int attendeeId, String password, Handler<AsyncResult<Void>> resultHandler) {
         String sql = "UPDATE attendee SET password = ?, is_temporary_password = false WHERE attendee_id = ?";
         JsonArray params = new JsonArray().add(password).add(attendeeId);

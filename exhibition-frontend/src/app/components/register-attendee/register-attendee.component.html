@@ -120,9 +120,9 @@
               <button mat-raised-button 
                       color="primary" 
                       type="submit" 
-                      [disabled]="isSubmitting || isCheckingEmail || !registerForm.form.valid">
-                <mat-icon *ngIf="isSubmitting || isCheckingEmail">hourglass_empty</mat-icon>
-                {{ isCheckingEmail ? 'Checking email...' : (isSubmitting ? 'Creating Account...' : 'Continue to Payment') }}
+                      [disabled]="isSubmitting || isCheckingEmail || isCheckingPhone || !registerForm.form.valid">
+                <mat-icon *ngIf="isSubmitting || isCheckingEmail || isCheckingPhone">hourglass_empty</mat-icon>
+                {{ (isCheckingEmail || isCheckingPhone) ? 'Verifying information...' : (isSubmitting ? 'Creating Account...' : 'Continue to Payment') }}
               </button>
             </div>
             </form>

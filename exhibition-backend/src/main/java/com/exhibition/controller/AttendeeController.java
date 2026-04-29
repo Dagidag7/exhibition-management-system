@@ -30,6 +30,7 @@ public class AttendeeController {
     public static void registerRoutes(Router router, AttendeeService attendeeService, ExhibitorService exhibitorService) {
         router.post("/attendees").handler(ctx -> createAttendee(ctx, attendeeService));
         router.post("/attendees/check-email").handler(ctx -> checkEmailAvailability(ctx, attendeeService));
+        router.post("/attendees/check-phone").handler(ctx -> checkPhoneAvailability(ctx, attendeeService));
         router.get("/attendees").handler(ctx -> getAllAttendees(ctx, attendeeService));
         router.get("/attendees/:id").handler(ctx -> getAttendeeById(ctx, attendeeService));
         router.get("/attendees/:id/receipt").handler(ctx -> downloadAttendeeReceipt(ctx, attendeeService));
@@ -271,6 +272,43 @@ private static void createAttendee(RoutingContext ctx, AttendeeService attendeeS
                        .setStatusCode(200)
                        .putHeader("content-type", "application/json")
                        .end("{\"available\": true, \"message\": \"Email is available\"}");
+                }
+            });
+            
+        } catch (Exception e) {
+            ctx.response()
+               .setStatusCode(500)
+               .putHeader("content-type", "application/json")
+               .end("{\"error\": \"Internal server error\"}");
+        }
+    }
+
+    private static void checkPhoneAvailability(RoutingContext ctx, AttendeeService attendeeService) {
+        try {
+            JsonObject body = ctx.getBodyAsJson();
+            String phone = body != null ? body.getString("phone") : null;
+            
+            if (phone == null || phone.trim().isEmpty()) {
+                ctx.response()
+                   .setStatusCode(400)
+                   .putHeader("content-type", "application/json")
+                   .end("{\"error\": \"Phone number is required\"}");
+                return;
+            }
+            
+            attendeeService.getAttendeeByPhone(phone.trim(), result -> {
+                if (result.succeeded()) {
+                    // Phone already exists
+                    ctx.response()
+                       .setStatusCode(400)
+                       .putHeader("content-type", "application/json")
+                       .end("{\"available\": false, \"error\": \"This phone number is already registered. Please use a different phone number.\"}");
+                } else {
+                    // Phone is available
+                    ctx.response()
+                       .setStatusCode(200)
+                       .putHeader("content-type", "application/json")
+                       .end("{\"available\": true, \"message\": \"Phone number is available\"}");
                 }
             });
             

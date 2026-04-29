@@ -66,4 +66,8 @@ export class AttendeeService {
   checkEmailAvailability(email: string): Observable<any> {
     return this.http.post(`${this.apiUrl}/check-email`, { email });
   }
+
+  checkPhoneAvailability(phone: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/check-phone`, { phone });
+  }
 } 

@@ -70,6 +70,11 @@ public class AttendeeServiceImpl implements AttendeeService {
     }
 
     @Override
+    public void getAttendeeByPhone(String phone, Handler<AsyncResult<Attendee>> resultHandler) {
+        attendeeRepository.getAttendeeByPhone(phone, resultHandler);
+    }
+
+    @Override
     public void listAttendees(Handler<AsyncResult<List<Attendee>>> resultHandler) {
         attendeeRepository.getAllAttendees(resultHandler);
     }
