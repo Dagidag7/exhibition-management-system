@@ -16,16 +16,16 @@ public class FileUploadController {
 
     public static void registerRoutes(Router router, FileService fileService) {
         // Upload single file
-        router.post("/api/upload").handler(ctx -> uploadFile(ctx, fileService));
+        router.post("/upload").handler(ctx -> uploadFile(ctx, fileService));
         
         // Upload with specific category
-        router.post("/api/upload/:category").handler(ctx -> uploadFileWithCategory(ctx, fileService));
+        router.post("/upload/:category").handler(ctx -> uploadFileWithCategory(ctx, fileService));
         
         // Delete file
-        router.delete("/api/files/*").handler(ctx -> deleteFile(ctx, fileService));
+        router.delete("/files/*").handler(ctx -> deleteFile(ctx, fileService));
         
         // Get file info
-        router.get("/api/files/info").handler(ctx -> getFileInfo(ctx, fileService));
+        router.get("/files/info").handler(ctx -> getFileInfo(ctx, fileService));
     }
 
     /**
