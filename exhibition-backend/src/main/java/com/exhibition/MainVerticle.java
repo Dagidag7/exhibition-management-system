@@ -353,24 +353,18 @@ public class MainVerticle extends AbstractVerticle {
                 .end(response.encode());
         });
 
-        // Create a subrouter for /api prefix
-        Router apiRouter = Router.router(vertx);
-        
-        // Register controllers on the API subrouter
-        AttendeeController.registerRoutes(apiRouter, attendeeService, exhibitorService);
-        ExhibitorController.registerRoutes(apiRouter, exhibitorService);
-        ProductController.registerRoutes(apiRouter, productService);
-        ConferenceController.registerRoutes(apiRouter, conferenceService);
-        SpeakerController.registerRoutes(apiRouter, speakerService, conferenceService);
-        SponsorController.registerRoutes(apiRouter, sponsorService);
-        PartnerController.registerRoutes(apiRouter, partnerService);
-        FloorController.registerRoutes(apiRouter, floorService);
-        AuthController.registerRoutes(apiRouter, authService);
-        DatabaseController.registerRoutes(apiRouter, databaseService);
-        FileUploadController.registerRoutes(apiRouter, fileService);
-        
-        // Mount the API router under /api prefix
-        router.mountSubRouter("/api", apiRouter);
+        // Register controllers
+        AttendeeController.registerRoutes(router, attendeeService, exhibitorService);
+        ExhibitorController.registerRoutes(router, exhibitorService);
+        ProductController.registerRoutes(router, productService);
+        ConferenceController.registerRoutes(router, conferenceService);
+        SpeakerController.registerRoutes(router, speakerService, conferenceService);
+        SponsorController.registerRoutes(router, sponsorService);
+        PartnerController.registerRoutes(router, partnerService);
+        FloorController.registerRoutes(router, floorService);
+        AuthController.registerRoutes(router, authService);
+        DatabaseController.registerRoutes(router, databaseService);
+        FileUploadController.registerRoutes(router, fileService);
 
         // Start HTTP server
         vertx.createHttpServer()
