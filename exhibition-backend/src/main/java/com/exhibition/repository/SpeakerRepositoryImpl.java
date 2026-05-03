@@ -118,13 +118,15 @@ public class SpeakerRepositoryImpl implements SpeakerRepository {
 
     private Speaker mapRowToSpeaker(JsonArray row) {
         Speaker speaker = new Speaker();
-        speaker.setSpeakerId(row.getInteger(0));
-        speaker.setName(row.getString(1));
-        speaker.setBio(row.getString(2));
-        speaker.setExpertise(row.getString(3));
-        speaker.setEmail(row.getString(4));
-        speaker.setPhone(row.getString(5));
-        speaker.setOrganization(row.getString(6));
+        speaker.setSpeakerId(row.getInteger(0));  // speaker_id
+        speaker.setName(row.getString(1));         // name
+        speaker.setBio(row.getString(2));          // bio
+        // row.getString(3) is photo_url - skip it
+        speaker.setExpertise(row.getString(4));    // expertise
+        // row.getInteger(5) is conference_id - skip it
+        speaker.setEmail(row.getString(6));        // email
+        speaker.setPhone(row.getString(7));        // phone
+        speaker.setOrganization(row.getString(8)); // organization
         return speaker;
     }
 }
