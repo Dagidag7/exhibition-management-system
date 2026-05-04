@@ -98,7 +98,7 @@ export class AdminComponent implements OnInit {
   speakerDisplayedColumns = ['name', 'email', 'bio', 'expertise', 'organization', 'actions'];
   conferenceDisplayedColumns = ['title', 'description', 'date', 'time', 'floorNumber', 'speaker', 'actions'];
   partnerDisplayedColumns = ['name', 'contactPerson', 'email', 'partnershipType', 'benefits', 'actions'];
-  sponsorDisplayedColumns = ['name', 'contactPerson', 'email', 'contributionAmount', 'benefits', 'actions'];
+  sponsorDisplayedColumns = ['name', 'contactPerson', 'email', 'contributionAmount', 'floorNumber', 'benefits', 'actions'];
 
   databaseOperations = [
     { operation: 'Backup Database', description: 'Create a backup of the current database', status: 'Available' },

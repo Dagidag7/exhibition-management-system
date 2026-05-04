@@ -275,6 +275,11 @@
           <td mat-cell *matCellDef="let sponsor">${{sponsor.contributionAmount}}</td>
         </ng-container>
 
+        <ng-container matColumnDef="floorNumber">
+          <th mat-header-cell *matHeaderCellDef>{{ 'admin.floor' | translate }}</th>
+          <td mat-cell *matCellDef="let sponsor">{{sponsor.floorNumber || 'N/A'}}</td>
+        </ng-container>
+
         <ng-container matColumnDef="benefits">
           <th mat-header-cell *matHeaderCellDef>{{ 'admin.benefits' | translate }}</th>
           <td mat-cell *matCellDef="let sponsor">{{sponsor.benefits || 'N/A'}}</td>
