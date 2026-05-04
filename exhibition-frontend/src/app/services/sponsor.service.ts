@@ -11,6 +11,7 @@ export interface Sponsor {
   contributionAmount: number;
   benefits: string;
   logoUrl: string;
+  floorNumber?: string;
 }
 
 @Injectable({

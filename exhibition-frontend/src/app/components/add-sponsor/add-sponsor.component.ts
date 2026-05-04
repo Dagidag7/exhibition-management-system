@@ -50,7 +50,8 @@ export class AddSponsorComponent implements OnInit {
       email: ['', [Validators.maxLength(255)]],
       contributionAmount: ['', [Validators.required, Validators.min(0)]],
       benefits: [''],
-      logoUrl: ['']
+      logoUrl: [''],
+      floorNumber: ['', [Validators.maxLength(10)]]
     });
   }
 
@@ -63,7 +64,8 @@ export class AddSponsorComponent implements OnInit {
         email: this.data.sponsor.email || '',
         contributionAmount: this.data.sponsor.contributionAmount,
         benefits: this.data.sponsor.benefits || '',
-        logoUrl: this.data.sponsor.logoUrl || ''
+        logoUrl: this.data.sponsor.logoUrl || '',
+        floorNumber: this.data.sponsor.floorNumber || ''
       });
     }
   }
@@ -83,7 +85,8 @@ export class AddSponsorComponent implements OnInit {
         email: formValue.email?.trim() ?? undefined,
         contributionAmount: Number(formValue.contributionAmount) || 0,
         benefits: formValue.benefits?.trim() ?? '',
-        logoUrl: formValue.logoUrl?.trim() ?? ''
+        logoUrl: formValue.logoUrl?.trim() ?? '',
+        floorNumber: formValue.floorNumber?.trim() ?? undefined
       };
       this.sponsorService.updateSponsor(id, payload).subscribe({
         next: (response) => {

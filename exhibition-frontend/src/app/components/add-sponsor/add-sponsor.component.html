@@ -61,6 +61,14 @@
         </div>
 
         <div class="form-row">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>{{ 'form.floorNumber' | translate }}</mat-label>
+            <input matInput formControlName="floorNumber" [placeholder]="'form.floorNumberPlaceholder' | translate" maxlength="10">
+            <mat-hint>{{ 'form.floorNumberHint' | translate }}</mat-hint>
+          </mat-form-field>
+        </div>
+
+        <div class="form-row">
           <app-image-upload
             [currentImageUrl]="sponsorForm.get('logoUrl')?.value"
             category="sponsors"

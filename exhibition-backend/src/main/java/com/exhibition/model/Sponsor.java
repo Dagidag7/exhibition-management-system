@@ -11,6 +11,7 @@ public class Sponsor {
     private double contributionAmount;
     private String benefits;
     private String logoUrl; // or imageUrl
+    private String floorNumber;
 
     // Constructor
     public Sponsor() {
@@ -37,4 +38,7 @@ public class Sponsor {
 
     public String getLogoUrl() { return logoUrl; }
     public void setLogoUrl(String logoUrl) { this.logoUrl = logoUrl; }
+
+    public String getFloorNumber() { return floorNumber; }
+    public void setFloorNumber(String floorNumber) { this.floorNumber = floorNumber; }
 }

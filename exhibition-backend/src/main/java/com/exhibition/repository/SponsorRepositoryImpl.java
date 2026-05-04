@@ -18,14 +18,15 @@ public class SponsorRepositoryImpl implements SponsorRepository {
 
     @Override
     public void addSponsor(Sponsor sponsor, Handler<AsyncResult<Void>> resultHandler) {
-        String sql = "INSERT INTO sponsor (name, contact_person, email, contribution_amount, benefits, logo_url) VALUES (?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO sponsor (name, contact_person, email, contribution_amount, benefits, logo_url, floor_number) VALUES (?, ?, ?, ?, ?, ?, ?)";
         JsonArray params = new JsonArray()
                 .add(sponsor.getName())
                 .add(sponsor.getContactPerson())
                 .add(sponsor.getEmail() != null ? sponsor.getEmail() : "")
                 .add(sponsor.getContributionAmount())
                 .add(sponsor.getBenefits())
-                .add(sponsor.getLogoUrl());
+                .add(sponsor.getLogoUrl())
+                .add(sponsor.getFloorNumber() != null ? sponsor.getFloorNumber() : "");
 
         System.out.println("Adding sponsor: " + sponsor.getName() + ", email: " + sponsor.getEmail() + ", amount: " + sponsor.getContributionAmount());
 
@@ -76,6 +77,7 @@ public class SponsorRepositoryImpl implements SponsorRepository {
                             sponsor.setContributionAmount(row.getDouble("contribution_amount"));
                             sponsor.setBenefits(row.getString("benefits"));
                             sponsor.setLogoUrl(row.getString("logo_url"));
+                            sponsor.setFloorNumber(row.getString("floor_number"));
                             promise.complete(sponsor);
                         } else {
                             promise.fail("Sponsor not found");
@@ -114,6 +116,7 @@ public class SponsorRepositoryImpl implements SponsorRepository {
                                 sponsor.setContributionAmount(row.getDouble("contribution_amount"));
                                 sponsor.setBenefits(row.getString("benefits"));
                                 sponsor.setLogoUrl(row.getString("logo_url"));
+                                sponsor.setFloorNumber(row.getString("floor_number"));
                                 sponsors.add(sponsor);
                             }
                             promise.complete(sponsors);
@@ -136,7 +139,7 @@ public class SponsorRepositoryImpl implements SponsorRepository {
 
     @Override
     public void updateSponsor(Sponsor sponsor, Handler<AsyncResult<Void>> resultHandler) {
-        String sql = "UPDATE sponsor SET name=?, contact_person=?, email=?, contribution_amount=?, benefits=?, logo_url=? WHERE sponsor_id=?";
+        String sql = "UPDATE sponsor SET name=?, contact_person=?, email=?, contribution_amount=?, benefits=?, logo_url=?, floor_number=? WHERE sponsor_id=?";
         JsonArray params = new JsonArray()
                 .add(sponsor.getName())
                 .add(sponsor.getContactPerson())
@@ -144,6 +147,7 @@ public class SponsorRepositoryImpl implements SponsorRepository {
                 .add(sponsor.getContributionAmount())
                 .add(sponsor.getBenefits())
                 .add(sponsor.getLogoUrl())
+                .add(sponsor.getFloorNumber() != null ? sponsor.getFloorNumber() : "")
                 .add(sponsor.getSponsorId());
 
         MainVerticle.vertx.executeBlocking(promise -> {
