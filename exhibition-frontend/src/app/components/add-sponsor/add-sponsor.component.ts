@@ -50,7 +50,7 @@ export class AddSponsorComponent implements OnInit {
       name: ['', [Validators.required, Validators.maxLength(100)]],
       contactPerson: ['', [Validators.required, Validators.maxLength(100)]],
       email: ['', [Validators.maxLength(255)]],
-      contributionAmount: ['', [Validators.required, Validators.min(0)]],
+      contributionAmount: ['', [Validators.required, Validators.min(0), this.contributionAmountValidator.bind(this)]],
       benefits: [''],
       logoUrl: [''],
       floorNumber: ['', [Validators.maxLength(10)]]
@@ -60,11 +60,29 @@ export class AddSponsorComponent implements OnInit {
   ngOnInit(): void {
     if (this.data?.sponsor) {
       this.isEditMode = true;
+      
+      // Check if contribution amount is valid, if not, reset to nearest valid amount
+      const allowedAmounts = [5000, 10000, 50000, 100000];
+      let contributionAmount = this.data.sponsor.contributionAmount;
+      
+      if (!allowedAmounts.includes(contributionAmount)) {
+        // Find nearest valid amount
+        if (contributionAmount < 7500) {
+          contributionAmount = 5000;
+        } else if (contributionAmount < 30000) {
+          contributionAmount = 10000;
+        } else if (contributionAmount < 75000) {
+          contributionAmount = 50000;
+        } else {
+          contributionAmount = 100000;
+        }
+      }
+      
       this.sponsorForm.patchValue({
         name: this.data.sponsor.name,
         contactPerson: this.data.sponsor.contactPerson,
         email: this.data.sponsor.email || '',
-        contributionAmount: this.data.sponsor.contributionAmount,
+        contributionAmount: contributionAmount,
         benefits: this.data.sponsor.benefits || '',
         logoUrl: this.data.sponsor.logoUrl || '',
         floorNumber: this.data.sponsor.floorNumber || ''
@@ -108,6 +126,17 @@ export class AddSponsorComponent implements OnInit {
 
   onLogoUploaded(url: string): void {
     this.sponsorForm.patchValue({ logoUrl: url });
+  }
+
+  contributionAmountValidator(control: any): { [key: string]: any } | null {
+    const allowedAmounts = [5000, 10000, 50000, 100000];
+    const value = Number(control.value);
+    
+    if (control.value && !allowedAmounts.includes(value)) {
+      return { 'invalidAmount': true };
+    }
+    
+    return null;
   }
 
   validateForm(): boolean {

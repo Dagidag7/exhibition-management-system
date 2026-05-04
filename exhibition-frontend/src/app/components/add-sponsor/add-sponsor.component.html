@@ -51,6 +51,9 @@
             <mat-error *ngIf="sponsorForm.get('contributionAmount')?.hasError('required')">
               {{ 'form.contributionAmountRequired' | translate }}
             </mat-error>
+            <mat-error *ngIf="sponsorForm.get('contributionAmount')?.hasError('invalidAmount')">
+              Contribution must be $5,000, $10,000, $50,000, or $100,000
+            </mat-error>
           </mat-form-field>
         </div>
 
