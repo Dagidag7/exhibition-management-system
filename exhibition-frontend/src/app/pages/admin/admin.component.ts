@@ -278,25 +278,17 @@ export class AdminComponent implements OnInit {
         this.conferences = conferences || [];
         this.dashboardStats.totalConferences = this.conferences.length;
         console.log('Conferences loaded:', this.conferences);
+        
+        // After conferences are loaded, load speakers and merge with conference speakers
+        this.loadSpeakersWithConferenceMerge();
       },
       error: (error) => {
         console.error('Error loading conferences:', error);
         this.conferences = [];
         this.dashboardStats.totalConferences = 0;
-      }
-    });
-
-    // Load speakers independently
-    this.speakerService.getSpeakers().subscribe({
-      next: (speakers) => {
-        this.speakers = speakers || [];
-        this.dashboardStats.totalSpeakers = this.speakers.length;
-        console.log('Speakers loaded:', this.speakers);
-      },
-      error: (error) => {
-        console.error('Error loading speakers:', error);
-        this.speakers = [];
-        this.dashboardStats.totalSpeakers = 0;
+        
+        // Still try to load speakers even if conferences fail
+        this.loadSpeakersWithConferenceMerge();
       }
     });
 
@@ -316,6 +308,86 @@ export class AdminComponent implements OnInit {
         console.log('Sponsors loaded:', this.sponsors);
       },
       error: (error) => { console.error('Error loading sponsors:', error); }
+    });
+  }
+
+  loadSpeakersWithConferenceMerge(): void {
+    // Load speakers from database
+    this.speakerService.getSpeakers().subscribe({
+      next: (speakers) => {
+        // Create a map of existing speakers by name (case-insensitive)
+        const speakerMap = new Map<string, Speaker>();
+        (speakers || []).forEach(s => {
+          const key = (s.name || '').trim().toLowerCase();
+          if (key) {
+            speakerMap.set(key, s);
+          }
+        });
+
+        // Track which speakers we've already added
+        const seen = new Set<string>();
+        this.speakers = [];
+
+        // First, add all speakers from the database
+        (speakers || []).forEach(speaker => {
+          const key = (speaker.name || '').trim().toLowerCase();
+          if (key && !seen.has(key)) {
+            seen.add(key);
+            this.speakers.push({ ...speaker });
+          }
+        });
+
+        // Then, add speakers from conferences that aren't in the database yet
+        this.conferences.forEach(conf => {
+          const speakerName = (conf.speaker || '').trim();
+          const key = speakerName.toLowerCase();
+          
+          if (speakerName && !seen.has(key)) {
+            seen.add(key);
+            // Create a placeholder speaker entry for speakers only in conferences
+            this.speakers.push({
+              speakerId: 0,
+              name: speakerName,
+              email: '',
+              bio: '',
+              expertise: '',
+              phone: '',
+              organization: ''
+            });
+          }
+        });
+
+        this.dashboardStats.totalSpeakers = this.speakers.length;
+        console.log('Speakers loaded (merged with conferences):', this.speakers);
+      },
+      error: (error) => {
+        console.error('Error loading speakers:', error);
+        
+        // If speaker API fails, still try to extract speakers from conferences
+        const seen = new Set<string>();
+        this.speakers = [];
+        
+        this.conferences.forEach(conf => {
+          const speakerName = (conf.speaker || '').trim();
+          const key = speakerName.toLowerCase();
+          
+          if (speakerName && !seen.has(key)) {
+            seen.add(key);
+            this.speakers.push({
+              speakerId: 0,
+              name: speakerName,
+              email: '',
+              bio: '',
+              expertise: '',
+              phone: '',
+              organization: ''
+            });
+          }
+        });
+        
+        this.dashboardStats.totalSpeakers = this.speakers.length;
+        console.log('Speakers extracted from conferences only:', this.speakers);
+      }
     });
   }
 
