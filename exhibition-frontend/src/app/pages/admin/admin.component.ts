@@ -16,7 +16,6 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { Router } from '@angular/router';
-import { forkJoin } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
 import { AttendeeService } from '../../services/attendee.service';
 import { ExhibitorService, Exhibitor } from '../../services/exhibitor.service';
@@ -273,37 +272,31 @@ export class AdminComponent implements OnInit {
 
     // Products are loaded in loadProductIdsForExhibitors method to avoid duplicate API calls
 
-    forkJoin({
-      conferences: this.conferenceService.getConferences(),
-      speakers: this.speakerService.getSpeakers()
-    }).subscribe({
-      next: ({ conferences, speakers }) => {
+    // Load conferences independently
+    this.conferenceService.getConferences().subscribe({
+      next: (conferences) => {
         this.conferences = conferences || [];
         this.dashboardStats.totalConferences = this.conferences.length;
-        const speakerMap = new Map<string, Speaker>();
-        (speakers || []).forEach(s => speakerMap.set((s.name || '').trim().toLowerCase(), s));
-        const seen = new Set<string>();
-        this.speakers = [];
-        this.conferences.forEach(conf => {
-          const speakerName = (conf.speaker || '').trim();
-          if (speakerName && !seen.has(speakerName.toLowerCase())) {
-            seen.add(speakerName.toLowerCase());
-            const existing = speakerMap.get(speakerName.toLowerCase());
-            this.speakers.push(existing ? { ...existing } : {
-              speakerId: 0,
-              name: speakerName,
-              email: '',
-              bio: '',
-              expertise: '',
-              phone: '',
-              organization: ''
-            });
-          }
-        });
-        this.dashboardStats.totalSpeakers = this.speakers.length;
+        console.log('Conferences loaded:', this.conferences);
       },
       error: (error) => {
-        console.error('Error loading conferences/speakers:', error);
+        console.error('Error loading conferences:', error);
+        this.conferences = [];
+        this.dashboardStats.totalConferences = 0;
+      }
+    });
+
+    // Load speakers independently
+    this.speakerService.getSpeakers().subscribe({
+      next: (speakers) => {
+        this.speakers = speakers || [];
+        this.dashboardStats.totalSpeakers = this.speakers.length;
+        console.log('Speakers loaded:', this.speakers);
+      },
+      error: (error) => {
+        console.error('Error loading speakers:', error);
+        this.speakers = [];
+        this.dashboardStats.totalSpeakers = 0;
       }
     });
 

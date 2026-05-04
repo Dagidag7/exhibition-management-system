@@ -60,9 +60,10 @@ CREATE TABLE IF NOT EXISTS speaker (
     speaker_id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     bio TEXT,
-    photo_url VARCHAR(500),
     expertise VARCHAR(255),
-    conference_id INTEGER REFERENCES conference(conference_id) ON DELETE SET NULL
+    email VARCHAR(255),
+    phone VARCHAR(50),
+    organization VARCHAR(255)
 );
 
 -- Create sponsor table
@@ -98,7 +99,7 @@ CREATE TABLE IF NOT EXISTS floor (
 CREATE INDEX IF NOT EXISTS idx_attendee_email ON attendee(email);
 CREATE INDEX IF NOT EXISTS idx_exhibitor_email ON exhibitor(email);
 CREATE INDEX IF NOT EXISTS idx_product_exhibitor ON product(exhibitor_id);
-CREATE INDEX IF NOT EXISTS idx_speaker_conference ON speaker(conference_id);
+CREATE INDEX IF NOT EXISTS idx_speaker_email ON speaker(email);
 CREATE INDEX IF NOT EXISTS idx_conference_date ON conference(date);
 
 -- Display success message

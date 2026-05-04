@@ -43,7 +43,7 @@ public class SpeakerRepositoryImpl implements SpeakerRepository {
     @Override
     public void getAllSpeakers(Handler<AsyncResult<List<Speaker>>> resultHandler) {
         MainVerticle.vertx.executeBlocking(promise -> {
-            String sql = "SELECT * FROM speaker ORDER BY name";
+            String sql = "SELECT speaker_id, name, bio, expertise, email, phone, organization FROM speaker ORDER BY name";
             jdbcClient.query(sql, res -> {
                 if (res.succeeded()) {
                     ResultSet resultSet = res.result();
@@ -62,7 +62,7 @@ public class SpeakerRepositoryImpl implements SpeakerRepository {
     @Override
     public void getSpeaker(int id, Handler<AsyncResult<Speaker>> resultHandler) {
         MainVerticle.vertx.executeBlocking(promise -> {
-            String sql = "SELECT * FROM speaker WHERE speaker_id = ?";
+            String sql = "SELECT speaker_id, name, bio, expertise, email, phone, organization FROM speaker WHERE speaker_id = ?";
             JsonArray params = new JsonArray().add(id);
             jdbcClient.queryWithParams(sql, params, res -> {
                 if (res.succeeded()) {
@@ -121,12 +121,10 @@ public class SpeakerRepositoryImpl implements SpeakerRepository {
         speaker.setSpeakerId(row.getInteger(0));  // speaker_id
         speaker.setName(row.getString(1));         // name
         speaker.setBio(row.getString(2));          // bio
-        // row.getString(3) is photo_url - skip it
-        speaker.setExpertise(row.getString(4));    // expertise
-        // row.getInteger(5) is conference_id - skip it
-        speaker.setEmail(row.getString(6));        // email
-        speaker.setPhone(row.getString(7));        // phone
-        speaker.setOrganization(row.getString(8)); // organization
+        speaker.setExpertise(row.getString(3));    // expertise
+        speaker.setEmail(row.getString(4));        // email
+        speaker.setPhone(row.getString(5));        // phone
+        speaker.setOrganization(row.getString(6)); // organization
         return speaker;
     }
 }
