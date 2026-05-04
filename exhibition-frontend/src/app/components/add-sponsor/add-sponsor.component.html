@@ -42,13 +42,14 @@
         <div class="form-row">
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>{{ 'form.contributionAmount' | translate }}</mat-label>
-            <input matInput type="number" formControlName="contributionAmount" [placeholder]="'form.contributionAmount' | translate" required>
-            <span matSuffix>$</span>
+            <mat-select formControlName="contributionAmount" required>
+              <mat-option [value]="5000">$5,000</mat-option>
+              <mat-option [value]="10000">$10,000</mat-option>
+              <mat-option [value]="50000">$50,000</mat-option>
+              <mat-option [value]="100000">$100,000</mat-option>
+            </mat-select>
             <mat-error *ngIf="sponsorForm.get('contributionAmount')?.hasError('required')">
               {{ 'form.contributionAmountRequired' | translate }}
-            </mat-error>
-            <mat-error *ngIf="sponsorForm.get('contributionAmount')?.hasError('min')">
-              {{ 'form.contributionAmountPositive' | translate }}
             </mat-error>
           </mat-form-field>
         </div>
@@ -63,7 +64,7 @@
         <div class="form-row">
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>{{ 'form.floorNumber' | translate }}</mat-label>
-            <input matInput formControlName="floorNumber" [placeholder]="'form.floorNumberPlaceholder' | translate" maxlength="10">
+            <input matInput formControlName="floorNumber" maxlength="10">
           </mat-form-field>
         </div>
 

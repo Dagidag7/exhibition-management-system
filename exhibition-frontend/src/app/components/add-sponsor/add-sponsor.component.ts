@@ -5,6 +5,7 @@ import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/materia
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -23,6 +24,7 @@ import { ImageUploadComponent } from '../image-upload/image-upload.component';
     MatCardModule,
     MatFormFieldModule,
     MatInputModule,
+    MatSelectModule,
     MatButtonModule,
     MatIconModule,
     TranslatePipe,
@@ -134,6 +136,18 @@ export class AddSponsorComponent implements OnInit {
     if (!formValue.contributionAmount || formValue.contributionAmount <= 0) {
       this.snackBar.open('Contribution amount must be greater than 0', 'Close', {
         duration: 4000,
+        horizontalPosition: 'center',
+        verticalPosition: 'top'
+      });
+      return false;
+    }
+
+    // Validate contribution amount - only allow specific values
+    const allowedAmounts = [5000, 10000, 50000, 100000];
+    const contributionAmount = Number(formValue.contributionAmount);
+    if (!allowedAmounts.includes(contributionAmount)) {
+      this.snackBar.open('Contribution amount must be one of: $5,000, $10,000, $50,000, or $100,000', 'Close', {
+        duration: 5000,
         horizontalPosition: 'center',
         verticalPosition: 'top'
       });
