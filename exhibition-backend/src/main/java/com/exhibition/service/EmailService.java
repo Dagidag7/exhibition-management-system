@@ -248,72 +248,100 @@ public class EmailService {
 	}
 
 	private void sendViaSMTP(String recipientEmail, String subject, String body) {
-		if (smtpHost == null || smtpHost.isBlank() || fromAddress == null || fromAddress.isBlank()) {
-			throw new EmailDeliveryException("SMTP is not fully configured. Set SMTP_HOST and SMTP_FROM before sending email.");
-		}
-		if (smtpUsername == null || smtpUsername.isBlank() || smtpPassword == null || smtpPassword.isBlank()) {
-			throw new EmailDeliveryException("SMTP authentication is not configured. Set SMTP_USER and SMTP_PASSWORD.");
-		}
+    if (smtpHost == null || smtpHost.isBlank()
+            || fromAddress == null || fromAddress.isBlank()) {
+        throw new EmailDeliveryException(
+                "SMTP is not fully configured. Set SMTP_HOST and SMTP_FROM.");
+    }
 
-		Properties props = new Properties();
-		props.put("mail.smtp.auth", "true");
-		props.put("mail.smtp.starttls.enable", String.valueOf(useTls));
-		props.put("mail.smtp.starttls.required", String.valueOf(useTls));
-		props.put("mail.smtp.host", smtpHost);
-		props.put("mail.smtp.port", String.valueOf(smtpPort));
-		// Trust the configured SMTP host and force modern TLS
-		props.put("mail.smtp.ssl.trust", smtpHost);
-		props.put("mail.smtp.ssl.protocols", "TLSv1.2 TLSv1.3");
-		props.put("mail.smtp.connectiontimeout", "15000");
-		props.put("mail.smtp.timeout", "20000");
-		props.put("mail.smtp.writetimeout", "15000");
+    if (smtpUsername == null || smtpUsername.isBlank()
+            || smtpPassword == null || smtpPassword.isBlank()) {
+        throw new EmailDeliveryException(
+                "SMTP authentication is not configured.");
+    }
 
-		Session session = Session.getInstance(props, new jakarta.mail.Authenticator() {
-			@Override
-			protected PasswordAuthentication getPasswordAuthentication() {
-				if (smtpUsername == null || smtpUsername.isBlank()) {
-					return null;
-				}
-				return new PasswordAuthentication(smtpUsername, smtpPassword);
-			}
-		});
+    Properties props = new Properties();
 
-		try {
-			Message message = new MimeMessage(session);
-			message.setFrom(new InternetAddress(fromAddress));
-			message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(recipientEmail));
-			message.setSubject(subject);
-			message.setText(body);
-			
-			System.out.println("SMTP: Connecting to server...");
-			Transport.send(message);
-			System.out.println("=".repeat(60));
-			System.out.println("SMTP: EMAIL SENT SUCCESSFULLY");
-			System.out.println("  To: " + recipientEmail);
-			System.out.println("  Subject: " + subject);
-			System.out.println("=".repeat(60));
-		} catch (MessagingException e) {
-			System.err.println("=".repeat(60));
-			System.err.println("SMTP: EMAIL SEND FAILED");
-			System.err.println("  To: " + recipientEmail);
-			System.err.println("  Subject: " + subject);
-			System.err.println("  Error: " + e.getMessage());
-			System.err.println("  ");
-			System.err.println("  SOLUTIONS:");
-			if (smtpHost.toLowerCase().contains("brevo")) {
-				System.err.println("  1. In Brevo, use your SMTP login email as SMTP_USER");
-				System.err.println("  2. In Brevo, use an SMTP key as SMTP_PASSWORD");
-				System.err.println("  3. If the key was regenerated or lost, create a new SMTP key and update .env");
-			} else {
-				System.err.println("  1. Use SendGrid: Set EMAIL_PROVIDER=sendgrid and configure SENDGRID_API_KEY");
-				System.err.println("  2. For Gmail SMTP, generate a new app password and set SMTP_PASSWORD");
-				System.err.println("  3. Verify SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASSWORD, and SMTP_FROM");
-			}
-			System.err.println("=".repeat(60));
-			e.printStackTrace();
-			throw new EmailDeliveryException(buildSmtpFailureMessage(), e);
-		}
-	}
+    props.put("mail.smtp.auth", "true");
+    props.put("mail.smtp.host", smtpHost);
+    props.put("mail.smtp.port", String.valueOf(smtpPort));
+    props.put("mail.smtp.connectiontimeout", "15000");
+    props.put("mail.smtp.timeout", "20000");
+    props.put("mail.smtp.writetimeout", "15000");
+    props.put("mail.smtp.ssl.trust", smtpHost);
+    props.put("mail.smtp.ssl.protocols", "TLSv1.2 TLSv1.3");
+
+    // Port 465 = SSL
+    if (smtpPort == 465) {
+        props.put("mail.smtp.ssl.enable", "true");
+        props.put("mail.smtp.starttls.enable", "false");
+        props.put("mail.smtp.starttls.required", "false");
+    }
+    // Port 587 = STARTTLS
+    else {
+        props.put("mail.smtp.ssl.enable", "false");
+        props.put("mail.smtp.starttls.enable", "true");
+        props.put("mail.smtp.starttls.required", "true");
+    }
+
+    Session session = Session.getInstance(props,
+            new jakarta.mail.Authenticator() {
+                @Override
+                protected PasswordAuthentication getPasswordAuthentication() {
+                    return new PasswordAuthentication(
+                            smtpUsername,
+                            smtpPassword
+                    );
+                }
+            });
+
+    // IMPORTANT: enable SMTP debug logs
+    session.setDebug(true);
+    session.setDebugOut(System.out);
+	
+    try {
+        System.out.println("=================================");
+        System.out.println("SMTP DEBUG");
+        System.out.println("Host: " + smtpHost);
+        System.out.println("Port: " + smtpPort);
+        System.out.println("User: " + smtpUsername);
+        System.out.println("From: " + fromAddress);
+        System.out.println("STARTTLS: " + props.get("mail.smtp.starttls.enable"));
+        System.out.println("SSL: " + props.get("mail.smtp.ssl.enable"));        System.out.println("=================================");
+
+        Message message = new MimeMessage(session);
+
+        message.setFrom(new InternetAddress(fromAddress));
+        message.setRecipients(
+                Message.RecipientType.TO,
+                InternetAddress.parse(recipientEmail)
+        );
+        message.setSubject(subject);
+        message.setText(body);
+
+        System.out.println("Connecting to SMTP server...");
+        Transport.send(message);
+
+        System.out.println("=================================");
+        System.out.println("EMAIL SENT SUCCESSFULLY");
+        System.out.println("To: " + recipientEmail);
+        System.out.println("Subject: " + subject);
+        System.out.println("=================================");
+
+    } catch (MessagingException e) {
+        System.err.println("=================================");
+        System.err.println("EMAIL SEND FAILED");
+        System.err.println("To: " + recipientEmail);
+        System.err.println("Error: " + e.getMessage());
+        System.err.println("=================================");
+        e.printStackTrace();
+
+        throw new EmailDeliveryException(
+                "Failed to send email: " + e.getMessage(),
+                e
+        );
+    }
+}
 
 	private static String firstNonBlank(String... values) {
 		for (String value : values) {
