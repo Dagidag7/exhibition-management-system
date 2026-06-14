@@ -9,9 +9,6 @@ import jakarta.mail.Session;
 import jakarta.mail.Transport;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
-import com.sendgrid.helpers.mail.Mail;
-import com.sendgrid.helpers.mail.objects.Content;
-import com.sendgrid.helpers.mail.objects.Email;
 import java.io.IOException;
 
 public class EmailService {
@@ -26,7 +23,6 @@ public class EmailService {
 		}
 	}
 
-	private final String emailProvider;
 	private final String smtpHost;
 	private final int smtpPort;
 	private final String smtpUsername;
@@ -34,7 +30,6 @@ public class EmailService {
 	private final String fromAddress;
 	private final String fromName;
 	private final boolean useTls;
-	private final String sendGridApiKey;
 	private final String brevoApiKey;
 
 	public static String getConfig(String key) {
@@ -59,9 +54,6 @@ public class EmailService {
 
 	public EmailService(String smtpHost, int smtpPort, String smtpUsername, String smtpPassword, String fromAddress, boolean useTls) {
 		// Determine email provider from environment
-		String provider = getConfig("EMAIL_PROVIDER");
-		this.emailProvider = (provider != null && !provider.isBlank()) ? provider.toLowerCase() : "smtp";
-		
 		// SMTP configuration
 		this.smtpHost = smtpHost;
 		this.smtpPort = smtpPort;
@@ -69,31 +61,10 @@ public class EmailService {
 		this.smtpPassword = smtpPassword;
 		this.useTls = useTls;
 		
-		// SendGrid configuration
-		String apiKey = getConfig("SENDGRID_API_KEY");
-		this.sendGridApiKey = apiKey;
+		this.fromAddress = fromAddress;
+        this.fromName = "Exhibition Admin";
+
 		this.brevoApiKey = getConfig("BREVO_API_KEY");
-		
-		String sendGridFromEmail = getConfig("SENDGRID_FROM_EMAIL");
-		this.fromAddress = "sendgrid".equals(this.emailProvider)
-			? firstNonBlank(sendGridFromEmail, fromAddress, smtpUsername)
-			: firstNonBlank(fromAddress, smtpUsername);
-		String name = getConfig("SENDGRID_FROM_NAME");
-		this.fromName = (name != null && !name.isBlank()) ? name : "Exhibition Admin";
-		
-		System.out.println("=".repeat(60));
-		System.out.println("EmailService initialized");
-		System.out.println("  Provider: " + this.emailProvider);
-		if ("sendgrid".equals(this.emailProvider)) {
-			System.out.println("  SendGrid API Key: " + (sendGridApiKey != null ? "Configured" : "NOT CONFIGURED"));
-			System.out.println("  From: " + fromName + " <" + fromAddress + ">");
-		} else {
-			System.out.println("  SMTP Host: " + smtpHost);
-			System.out.println("  SMTP Port: " + smtpPort);
-			System.out.println("  SMTP User: " + smtpUsername);
-			System.out.println("  From: " + fromAddress);
-		}
-		System.out.println("=".repeat(60));
 	}
 
 	public void sendWelcomePassword(String recipientEmail, String companyName, String password) {
@@ -191,60 +162,7 @@ public class EmailService {
 
     sendViaBrevoApi(recipientEmail, subject, body);
 }
-	private void sendViaSendGrid(String recipientEmail, String subject, String body) {
-		if (sendGridApiKey == null || sendGridApiKey.isBlank()) {
-			System.err.println("=".repeat(60));
-			System.err.println("SendGrid API key not configured. Falling back to SMTP.");
-			System.err.println("=".repeat(60));
-			if (smtpHost == null || smtpHost.isBlank()) {
-				throw new EmailDeliveryException("SENDGRID_API_KEY is not configured and no SMTP fallback is available.");
-			}
-			sendViaSMTP(recipientEmail, subject, body);
-			return;
-		}
-
-		try {
-			Email from = new Email(fromAddress, fromName);
-			Email to = new Email(recipientEmail);
-			Content content = new Content("text/plain", body);
-			Mail mail = new Mail(from, subject, to, content);
-
-			SendGrid sg = new SendGrid(sendGridApiKey);
-			Request request = new Request();
-			request.setMethod(Method.POST);
-			request.setEndpoint("mail/send");
-			request.setBody(mail.build());
-			
-			Response response = sg.api(request);
-			
-			if (response.getStatusCode() >= 200 && response.getStatusCode() < 300) {
-				System.out.println("=".repeat(60));
-				System.out.println("SendGrid: EMAIL SENT SUCCESSFULLY");
-				System.out.println("  To: " + recipientEmail);
-				System.out.println("  Subject: " + subject);
-				System.out.println("  Status Code: " + response.getStatusCode());
-				System.out.println("=".repeat(60));
-			} else {
-				System.err.println("=".repeat(60));
-				System.err.println("SendGrid: EMAIL SEND FAILED");
-				System.err.println("  To: " + recipientEmail);
-				System.err.println("  Status Code: " + response.getStatusCode());
-				System.err.println("  Response Body: " + response.getBody());
-				System.err.println("=".repeat(60));
-				throw new EmailDeliveryException("SendGrid rejected the email with status " + response.getStatusCode() + ".");
-			}
-		} catch (IOException e) {
-			System.err.println("=".repeat(60));
-			System.err.println("SendGrid: EMAIL SEND EXCEPTION");
-			System.err.println("  To: " + recipientEmail);
-			System.err.println("  Error: " + e.getMessage());
-			System.err.println("  Falling back to SMTP...");
-			System.err.println("=".repeat(60));
-			e.printStackTrace();
-			// Fallback to SMTP if SendGrid fails
-			sendViaSMTP(recipientEmail, subject, body);
-		}
-	}
+	
 
 	private void sendViaSMTP(String recipientEmail, String subject, String body) {
     if (smtpHost == null || smtpHost.isBlank()
