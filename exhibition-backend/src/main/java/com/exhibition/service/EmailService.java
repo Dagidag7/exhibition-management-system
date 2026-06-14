@@ -269,7 +269,7 @@ public class EmailService {
     props.put("mail.smtp.timeout", "20000");
     props.put("mail.smtp.writetimeout", "15000");
     props.put("mail.smtp.ssl.trust", smtpHost);
-    props.put("mail.smtp.ssl.protocols", "TLSv1.2 TLSv1.3");
+    props.put("mail.smtp.ssl.protocols", "TLSv1.2");
 
     // Port 465 = SSL
     if (smtpPort == 465) {
@@ -298,7 +298,7 @@ public class EmailService {
     // IMPORTANT: enable SMTP debug logs
     session.setDebug(true);
     session.setDebugOut(System.out);
-	
+
     try {
         System.out.println("=================================");
         System.out.println("SMTP DEBUG");
