@@ -1,5 +1,6 @@
 package com.exhibition.service;
 
+import okhttp3.*;
 import java.util.Properties;
 import jakarta.mail.Message;
 import jakarta.mail.MessagingException;
@@ -35,6 +36,7 @@ public class EmailService {
 	private final String fromName;
 	private final boolean useTls;
 	private final String sendGridApiKey;
+	private final String brevoApiKey;
 
 	public static String getConfig(String key) {
 		String value = System.getProperty(key);
@@ -71,6 +73,7 @@ public class EmailService {
 		// SendGrid configuration
 		String apiKey = getConfig("SENDGRID_API_KEY");
 		this.sendGridApiKey = apiKey;
+		this.brevoApiKey = getConfig("BREVO_API_KEY");
 		
 		String sendGridFromEmail = getConfig("SENDGRID_FROM_EMAIL");
 		this.fromAddress = "sendgrid".equals(this.emailProvider)
@@ -177,21 +180,18 @@ public class EmailService {
 		sendEmail(recipientEmail, subject, body);
 	}
 
-	public void sendEmail(String recipientEmail, String subject, String body) {
-		System.out.println("=".repeat(60));
-		System.out.println("EmailService: Attempting to send email");
-		System.out.println("  Provider: " + emailProvider);
-		System.out.println("  To: " + recipientEmail);
-		System.out.println("  Subject: " + subject);
-		System.out.println("=".repeat(60));
-		
-		if ("sendgrid".equals(emailProvider)) {
-			sendViaSendGrid(recipientEmail, subject, body);
-		} else {
-			sendViaSMTP(recipientEmail, subject, body);
-		}
-	}
+	public void sendEmail(String recipientEmail,
+                      String subject,
+                      String body) {
 
+    System.out.println("=================================================");
+    System.out.println("Sending email");
+    System.out.println("To: " + recipientEmail);
+    System.out.println("Subject: " + subject);
+    System.out.println("=================================================");
+
+    sendViaBrevoApi(recipientEmail, subject, body);
+}
 	private void sendViaSendGrid(String recipientEmail, String subject, String body) {
 		if (sendGridApiKey == null || sendGridApiKey.isBlank()) {
 			System.err.println("=".repeat(60));
@@ -338,6 +338,89 @@ public class EmailService {
 
         throw new EmailDeliveryException(
                 "Failed to send email: " + e.getMessage(),
+                e
+        );
+    }
+}
+private void sendViaBrevoApi(String recipientEmail,
+                             String subject,
+                             String body) {
+
+    if (brevoApiKey == null || brevoApiKey.isBlank()) {
+        throw new EmailDeliveryException(
+                "BREVO_API_KEY is not configured."
+        );
+    }
+
+    try {
+        OkHttpClient client = new OkHttpClient();
+
+        String json =
+                "{"
+                        + "\"sender\":{"
+                        + "\"name\":\"" + fromName + "\","
+                        + "\"email\":\"" + fromAddress + "\""
+                        + "},"
+                        + "\"to\":[{"
+                        + "\"email\":\"" + recipientEmail + "\""
+                        + "}],"
+                        + "\"subject\":\"" 
+						+ subject.replace("\"", "\\\"") 
+						+ "\","
+                        + "\"textContent\":\""
+                        + body.replace("\"", "\\\"")
+                              .replace("\n", "\\n")
+                        + "\""
+                        + "}";
+
+        RequestBody requestBody =
+                RequestBody.create(
+                        json,
+                        MediaType.parse("application/json")
+                );
+
+        Request request =
+                new Request.Builder()
+                        .url("https://api.brevo.com/v3/smtp/email")
+						.addHeader("accept", "application/json")
+                        .addHeader("api-key", brevoApiKey)
+                        .addHeader("Content-Type", "application/json")
+                        .post(requestBody)
+                        .build();
+
+       try (Response response =
+        client.newCall(request).execute()) {
+
+        if (response.isSuccessful()) {
+
+            System.out.println("=================================================");
+            System.out.println("EMAIL SENT SUCCESSFULLY");
+            System.out.println("To: " + recipientEmail);
+            System.out.println("Status: " + response.code());
+            System.out.println("=================================================");
+
+        } else {
+
+            String error =
+                    response.body() != null
+                            ? response.body().string()
+                            : "";
+
+            throw new EmailDeliveryException(
+                    "Brevo API returned "
+                            + response.code()
+                            + ": "
+                            + error
+            );
+        }
+
+    } catch (Exception e) {
+
+        e.printStackTrace();
+
+        throw new EmailDeliveryException(
+                "Failed to send email via Brevo API: "
+                        + e.getMessage(),
                 e
         );
     }
