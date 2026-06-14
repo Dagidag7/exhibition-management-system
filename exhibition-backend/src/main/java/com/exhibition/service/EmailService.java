@@ -9,7 +9,6 @@ import jakarta.mail.Session;
 import jakarta.mail.Transport;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
-import com.sendgrid.*;
 import com.sendgrid.helpers.mail.Mail;
 import com.sendgrid.helpers.mail.objects.Content;
 import com.sendgrid.helpers.mail.objects.Email;
@@ -364,9 +363,9 @@ private void sendViaBrevoApi(String recipientEmail,
                         + "\"to\":[{"
                         + "\"email\":\"" + recipientEmail + "\""
                         + "}],"
-                        + "\"subject\":\"" 
-						+ subject.replace("\"", "\\\"") 
-						+ "\","
+                        + "\"subject\":\""
+                        + subject.replace("\"", "\\\"")
+                        + "\","
                         + "\"textContent\":\""
                         + body.replace("\"", "\\\"")
                               .replace("\n", "\\n")
@@ -382,36 +381,37 @@ private void sendViaBrevoApi(String recipientEmail,
         Request request =
                 new Request.Builder()
                         .url("https://api.brevo.com/v3/smtp/email")
-						.addHeader("accept", "application/json")
+                        .addHeader("accept", "application/json")
                         .addHeader("api-key", brevoApiKey)
                         .addHeader("Content-Type", "application/json")
                         .post(requestBody)
                         .build();
 
-       try (Response response =
-        client.newCall(request).execute()) {
+        try (Response response =
+                     client.newCall(request).execute()) {
 
-        if (response.isSuccessful()) {
+            if (response.isSuccessful()) {
 
-            System.out.println("=================================================");
-            System.out.println("EMAIL SENT SUCCESSFULLY");
-            System.out.println("To: " + recipientEmail);
-            System.out.println("Status: " + response.code());
-            System.out.println("=================================================");
+                System.out.println("=================================");
+                System.out.println("EMAIL SENT SUCCESSFULLY");
+                System.out.println("To: " + recipientEmail);
+                System.out.println("Status: " + response.code());
+                System.out.println("=================================");
 
-        } else {
+            } else {
 
-            String error =
-                    response.body() != null
-                            ? response.body().string()
-                            : "";
+                String error =
+                        response.body() != null
+                                ? response.body().string()
+                                : "";
 
-            throw new EmailDeliveryException(
-                    "Brevo API returned "
-                            + response.code()
-                            + ": "
-                            + error
-            );
+                throw new EmailDeliveryException(
+                        "Brevo API returned "
+                                + response.code()
+                                + ": "
+                                + error
+                );
+            }
         }
 
     } catch (Exception e) {
